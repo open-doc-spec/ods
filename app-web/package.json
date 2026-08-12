@@ -11,8 +11,8 @@
     "deploy": "NODE_ENV=production npm run build && firebase deploy --only hosting --project prod-ods-260726"
   },
   "dependencies": {
-    "@astrojs/mdx": "^6.0.3",
-    "astro": "^6.4.6"
+    "@astrojs/mdx": "^7.0.5",
+    "astro": "^7.2.1"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.7",
