@@ -61,6 +61,7 @@ packs:
 | Profile | Meaning | Expected sections |
 | :--- | :--- | :--- |
 | `note` | Free-form prose (default) | none |
+| `agent` | AI instruction / task contract (`agent.md`) | Goal, Task, Scope, Non-Scope, Context, Inputs, Constraints, Priority, Steps, Output, Success Criteria, Failure Modes, Dependencies, Assumptions, Examples |
 | `feature` | Capability / PRD-style | Goal, Scope, Requirements, Acceptance Criteria, Risks |
 | `guide` | Tutorial / how-to | Overview, Prerequisites, Steps, Troubleshooting |
 | `api` | Interface reference (artifact stays a resource) | Overview, Request, Response, Errors, Examples |

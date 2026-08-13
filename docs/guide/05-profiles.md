@@ -13,10 +13,10 @@ ODS uses a two-tiered **Standard (Built-in) vs. Workspace (Custom)** layering mo
 
 | Layer | Source | Enforcement |
 | :--- | :--- | :--- |
-| **Standard Profiles** | Built into the specification / `ods` binary (12 core profiles) | Always available; section lint for known shapes |
+| **Standard Profiles** | Built into the specification / `ods` binary (13 core profiles) | Always available; section lint for known shapes |
 | **Custom Profiles** | Explicitly declared under `custom_profiles` in root `ods.toml`, or imported **ODS Packs** (`packs:`) | Additive catalogs; unknown name → warning (falls back to **Default Profile (`note`)**) |
 
-Prefer **Standard Profiles** first (`feature`, `guide`, `api`, `architecture`, `decision`, `sop`, `policy`, `meeting`, `faq`, `checklist`, `index`, `note`). Introduce a **Custom Profile** or **ODS Pack** only when a repeated document class is worth standardizing across teams.
+Prefer **Standard Profiles** first (`agent`, `feature`, `guide`, `api`, `architecture`, `decision`, `sop`, `policy`, `meeting`, `faq`, `checklist`, `index`, `note`). Introduce a **Custom Profile** or **ODS Pack** only when a repeated document class is worth standardizing across teams.
 
 ---
 
@@ -25,7 +25,7 @@ Prefer **Standard Profiles** first (`feature`, `guide`, `api`, `architecture`, `
 When resolving profile definitions (Zero Folder Auto-Discovery):
 
 ```text
-1. Standard Profiles (built-in 12 core profiles)           // always loaded first
+1. Standard Profiles (built-in 13 core profiles)           // always loaded first
 2. Explicit custom profile catalog paths listed in custom_profiles (ods.toml): // workspace-local
 3. Custom profiles in imported ODS Packs listed in packs:   // vendor / linked packs
 ```
@@ -107,6 +107,7 @@ packs:
 | **Frequently Asked Questions** | `faq` | — |
 | **Directory Navigation** | `index` | — |
 | **General Prose / Formal Spec / Note** | `note` | — |
+| **Agent Instructions / Prompt Contract** | `agent` | Goal, Task, Scope, Non-Scope, Context, Inputs, Constraints, Priority, Steps, Output, Success Criteria, Failure Modes, Dependencies, Assumptions, Examples |
 
 
 ### Profile resolution order

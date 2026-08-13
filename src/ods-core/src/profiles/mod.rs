@@ -189,6 +189,31 @@ fn standard_profile_definitions() -> Vec<ProfileDefinition> {
     vec![
         profile("note", vec![]),
         profile(
+            "agent",
+            vec![
+                section(&["Goal", "Objective", "Purpose"]),
+                section(&["Task", "Work", "Assignment"]),
+                section(&["Scope", "In Scope", "Boundaries"]),
+                section(&["Non-Scope", "Out of Scope", "Exclusions"]),
+                section(&["Context", "Background"]),
+                section(&["Inputs", "Source Material"]),
+                section(&["Constraints", "Rules", "Limits"]),
+                section(&["Priority", "Order"]),
+                section(&["Steps", "Workflow", "Procedure", "Process"]),
+                section(&["Output", "Deliverable", "Result"]),
+                section(&[
+                    "Success Criteria",
+                    "Acceptance Criteria",
+                    "Done When",
+                    "Definition of Done",
+                ]),
+                section(&["Failure Modes", "Risks", "Edge Cases", "Fallbacks"]),
+                section(&["Dependencies", "Prerequisites", "Blockers"]),
+                section(&["Assumptions", "Unknowns"]),
+                section(&["Examples", "Sample", "Examples"]),
+            ],
+        ),
+        profile(
             "feature",
             vec![
                 section(&["Goal", "Objective", "Objectives", "Purpose"]),
@@ -348,6 +373,9 @@ pub fn resolve_document_profile<'a>(doc: &'a Document, catalog: &'a ProfileCatal
             .unwrap_or_default()
             .to_lowercase();
         match folder_name.as_str() {
+            "agent" | "agents" | "prompt" | "prompts" | "subagent" | "subagents" => {
+                return "agent"
+            }
             "adrs" | "decisions" => return "decision",
             "features" | "prds" => return "feature",
             "apis" | "endpoints" => return "api",

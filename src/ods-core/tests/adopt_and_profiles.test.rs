@@ -9,6 +9,7 @@ fn standard_catalog_includes_core_profiles() {
     let cat = standard_profile_catalog();
     for name in [
         "note",
+        "agent",
         "feature",
         "guide",
         "decision",
@@ -79,6 +80,25 @@ fn adopt_infers_guide_and_policy() {
             .unwrap()
             .contains("profile: policy")
     );
+}
+
+#[test]
+fn adopt_infers_agent_from_headings() {
+    let dir = temp_workspace();
+    fs::write(
+        dir.join("index.ods.md"),
+        "---\nprofile: index\nods: 0.1\n---\n\n# R\n\n- [a.md](a.md)\n",
+    )
+    .unwrap();
+    fs::write(
+        dir.join("a.md"),
+        "# A\n\n## Goal\n\n## Task\n\n## Scope\n\n## Success Criteria\n\n## Failure Modes\n\n## Assumptions\n",
+    )
+    .unwrap();
+    let ws = load_workspace(&dir).unwrap();
+    adopt_workspace(&ws, AdoptOptions { write: true }).unwrap();
+    let text = fs::read_to_string(dir.join("a.md")).unwrap();
+    assert!(text.contains("profile: agent"), "{text}");
 }
 
 #[test]

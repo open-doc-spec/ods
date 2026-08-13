@@ -54,6 +54,14 @@ pub fn scaffold_new_document(
     let path_str = target_path.to_string_lossy().to_lowercase();
     let inferred_profile = if let Some(p) = options.profile {
         p
+    } else if path_str.contains("agent")
+        || path_str.contains("agents")
+        || path_str.contains("prompt")
+        || path_str.contains("prompts")
+        || path_str.contains("subagent")
+        || path_str.contains("subagents")
+    {
+        "agent".to_string()
     } else if path_str.contains("guide") || path_str.contains("tutorial") || path_str.contains("howto") {
         "guide".to_string()
     } else if path_str.contains("feature") || path_str.contains("spec") || path_str.contains("prd") {
@@ -79,6 +87,9 @@ pub fn scaffold_new_document(
     };
 
     let section_template = match inferred_profile.as_str() {
+        "agent" => {
+            "## Goal\n\n## Task\n\n## Scope\n\n## Non-Scope\n\n## Context\n\n## Inputs\n\n## Constraints\n\n## Priority\n\n## Steps\n\n## Output\n\n## Success Criteria\n\n## Failure Modes\n\n## Dependencies\n\n## Assumptions\n\n## Examples\n"
+        }
         "feature" => "## Goal\n\n## Scope\n\n## Requirements\n\n## Acceptance Criteria\n\n## Risks\n",
         "guide" => "## Overview\n\n## Prerequisites\n\n## Steps\n\n## Troubleshooting\n",
         "decision" => "## Context\n\n## Decision\n\n## Alternatives\n\n## Consequences\n",

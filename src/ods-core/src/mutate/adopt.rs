@@ -113,6 +113,14 @@ fn infer_profile(body: &str) -> &'static str {
     let has = |candidates: &[&str]| candidates.iter().any(|c| normalized.iter().any(|h| h == c));
 
     if has(&[
+        "task",
+        "successcriteria",
+        "failuremodes",
+        "assumptions",
+        "dependencies",
+    ]) {
+        "agent"
+    } else if has(&[
         "goal",
         "objective",
         "scope",

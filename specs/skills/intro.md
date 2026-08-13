@@ -11,6 +11,8 @@ ods:
 
 **Agent Skills** are reusable instruction packages for AI agents: a directory with a `SKILL.md` (YAML frontmatter + Markdown body), optional `scripts/`, `references/`, and `assets/`.
 
+For standalone agent instruction docs that live as normal Markdown files, prefer `agent.md` with the ODS `agent` profile. Keep `SKILL.md` as the installable package entrypoint.
+
 The `ods` CLI treats Agent Skills as an **extra dialect** (flag only):
 
 ```bash
