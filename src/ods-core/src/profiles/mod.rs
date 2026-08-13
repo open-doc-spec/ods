@@ -373,9 +373,7 @@ pub fn resolve_document_profile<'a>(doc: &'a Document, catalog: &'a ProfileCatal
             .unwrap_or_default()
             .to_lowercase();
         match folder_name.as_str() {
-            "agent" | "agents" | "prompt" | "prompts" | "subagent" | "subagents" => {
-                return "agent"
-            }
+            "agent" | "agents" | "prompt" | "prompts" | "subagent" | "subagents" => return "agent",
             "adrs" | "decisions" => return "decision",
             "features" | "prds" => return "feature",
             "apis" | "endpoints" => return "api",
