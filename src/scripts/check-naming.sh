@@ -9,9 +9,9 @@ scan() {
   local pattern="$1"
   local hits
   hits=$(grep -rnE "$pattern" \
-    src/ods-core src/ods-cli src/scripts skills src/specs src/action \
+    src/ods-core src/ods-cli src/scripts \
     docs/guide docs/other-specs docs/maintainer \
-    README.md AGENTS.md CONTRIBUTING.md action.yml \
+    README.md AGENTS.md CONTRIBUTING.md \
     --include='*.rs' --include='*.md' --include='*.sh' --include='*.ps1' --include='*.yml' \
     2>/dev/null | \
     grep -v 'src/scripts/check-naming.sh' | \

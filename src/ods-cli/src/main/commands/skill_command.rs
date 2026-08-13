@@ -212,15 +212,15 @@ When editing Markdown in an ODS workspace:
 
 /// Agent-facing skill bundle: progressive references only (no evals — those burn host context).
 const SKILL_BUNDLE: &[(&str, &[u8])] = &[
-    ("SKILL.md", include_bytes!("../../../../../skills/ods/SKILL.md")),
-    ("index.md", include_bytes!("../../../../../skills/ods/index.md")),
-    ("references/index.md", include_bytes!("../../../../../skills/ods/references/index.md")),
-    ("references/intro.md", include_bytes!("../../../../../skills/ods/references/intro.md")),
-    ("references/keys.md", include_bytes!("../../../../../skills/ods/references/keys.md")),
-    ("references/core.md", include_bytes!("../../../../../skills/ods/references/core.md")),
-    ("references/scope.md", include_bytes!("../../../../../skills/ods/references/scope.md")),
-    ("references/lsp.md", include_bytes!("../../../../../skills/ods/references/lsp.md")),
-    ("scripts/bootstrap.ps1", include_bytes!("../../../../../skills/ods/scripts/bootstrap.ps1")),
-    ("scripts/bootstrap.sh", include_bytes!("../../../../../skills/ods/scripts/bootstrap.sh")),
-    ("scripts/install-from-release.sh", include_bytes!("../../../../../skills/ods/scripts/install-from-release.sh")),
+    ("SKILL.md", include_bytes!("../../../assets/skills/ods/SKILL.md")),
+    ("index.md", include_bytes!("../../../assets/skills/ods/index.md")),
+    ("references/index.md", include_bytes!("../../../assets/skills/ods/references/index.md")),
+    ("references/intro.md", include_bytes!("../../../assets/skills/ods/references/intro.md")),
+    ("references/keys.md", include_bytes!("../../../assets/skills/ods/references/keys.md")),
+    ("references/core.md", include_bytes!("../../../assets/skills/ods/references/core.md")),
+    ("references/scope.md", include_bytes!("../../../assets/skills/ods/references/scope.md")),
+    ("references/lsp.md", include_bytes!("../../../assets/skills/ods/references/lsp.md")),
+    ("scripts/bootstrap.ps1", include_bytes!("../../../assets/skills/ods/scripts/bootstrap.ps1")),
+    ("scripts/bootstrap.sh", include_bytes!("../../../assets/skills/ods/scripts/bootstrap.sh")),
+    ("scripts/install-from-release.sh", include_bytes!("../../../assets/skills/ods/scripts/install-from-release.sh")),
 ];
