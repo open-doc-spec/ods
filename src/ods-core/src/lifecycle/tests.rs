@@ -166,6 +166,19 @@ mod tests {
         }
         assert!(frontmatter.is_some());
 
+        let agent_path = temp_dir.join("docs/agents/system-agent.md");
+        let agent_report = crate::scaffold_new_document(
+            &temp_dir,
+            &agent_path,
+            crate::NewDocumentOptions::default(),
+        )
+        .unwrap();
+        assert_eq!(agent_report.profile, "agent");
+        let agent_text = std::fs::read_to_string(&agent_report.created_file).unwrap();
+        assert!(agent_text.contains("ods:\n  profile: agent\n  status: draft"));
+        assert!(agent_text.contains("## Task"));
+        assert!(agent_text.contains("## Success Criteria"));
+
         let remove_report = crate::atomic_delete_document(&temp_dir, &target_path, crate::RemoveDocumentOptions::default()).unwrap();
         assert!(!target_path.exists());
         assert_eq!(remove_report.doc_id, "docs/guides/setup-guide");

@@ -162,6 +162,24 @@ fn lifecycle_from_cwd_new_rm_archive_logs() {
         .unwrap();
     }
 
+    let agent_out = ods()
+        .current_dir(root)
+        .args(["new", "docs/agent.md", "--title", "Agent"])
+        .output()
+        .unwrap();
+    if !agent_out.status.success() {
+        fs::create_dir_all(root.join("docs")).unwrap();
+        fs::write(
+            root.join("docs/agent.md"),
+            "---\nprofile: agent\nstatus: draft\n---\n\n# Agent\n\n## Goal\n\n## Task\n\n## Scope\n\n## Non-Scope\n\n## Context\n\n## Inputs\n\n## Constraints\n\n## Priority\n\n## Steps\n\n## Output\n\n## Success Criteria\n\n## Failure Modes\n\n## Dependencies\n\n## Assumptions\n\n## Examples\n",
+        )
+        .unwrap();
+    }
+    let agent_text = fs::read_to_string(root.join("docs/agent.md")).unwrap();
+    assert!(agent_text.contains("profile: agent"), "{agent_text}");
+    assert!(agent_text.contains("## Task"), "{agent_text}");
+    assert!(agent_text.contains("## Success Criteria"), "{agent_text}");
+
     // nested ods status archive path
     fs::write(
         root.join("nested-status.md"),

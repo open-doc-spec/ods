@@ -15,6 +15,19 @@ ods:
 
 Your files remain `.md` files forever.
 
+### Related repositories (first-cut extract)
+
+| Surface | Repository |
+|---------|------------|
+| Engine / CLI (this monorepo) | [open-doc-spec/ods](https://github.com/open-doc-spec/ods) |
+| Normative specs | [open-doc-spec/ods-spec](https://github.com/open-doc-spec/ods-spec) |
+| End-user skill | [open-doc-spec/ods-skills](https://github.com/open-doc-spec/ods-skills) |
+| GitHub Action | [open-doc-spec/ods-action](https://github.com/open-doc-spec/ods-action) |
+| Benchmark fixtures | [open-doc-spec/ods-benchmarks](https://github.com/open-doc-spec/ods-benchmarks) |
+| Site (private) | [open-doc-spec/opendocify.com](https://github.com/open-doc-spec/opendocify.com) |
+
+In-tree `specs/`, `skills/ods/`, `app-web/`, `src/fixtures/benchmarks/`, and the composite action remain **mirrors** for first cut. Details: [`docs/maintainer/satellite-repos.md`](docs/maintainer/satellite-repos.md).
+
 ---
 
 ## 🧭 The 5W1H Framework

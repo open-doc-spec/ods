@@ -112,7 +112,16 @@ mod test_pack_command {
         let td = tempfile::tempdir().unwrap();
         let pack_path = td.path().join("test-pack");
 
-        let res_list = run_pack_command(&["ods".into(), "pack".into()]);
+        let ws = td.path().join("ws");
+        std::fs::create_dir_all(&ws).unwrap();
+        std::fs::write(ws.join("ods.toml"), "spec = \"0.1\"\n").unwrap();
+
+        let res_list = run_pack_command(&[
+            "ods".into(),
+            "pack".into(),
+            "list".into(),
+            ws.to_string_lossy().to_string(),
+        ]);
         assert!(res_list.is_ok());
 
         let err2 = run_pack_command(&["ods".into(), "pack".into(), "invalid".into()]);
@@ -138,16 +147,11 @@ mod test_pack_command {
         ]);
         assert!(res_prev.is_ok() || res_prev.is_err());
 
-        let ws = td.path().join("ws");
-        std::fs::create_dir_all(&ws).unwrap();
-        std::fs::write(ws.join("ods.toml"), "spec = \"0.1\"\n").unwrap();
-
-        let prev = std::env::current_dir().ok();
-        let _ = std::env::set_current_dir(&ws);
         let res_add = run_pack_add(&[
             "ods".into(),
             "pack".into(),
             "add".into(),
+            ws.to_string_lossy().to_string(),
             pack_path.to_string_lossy().to_string(),
         ]);
         assert!(res_add.is_ok());
@@ -156,12 +160,10 @@ mod test_pack_command {
             "ods".into(),
             "pack".into(),
             "rm".into(),
+            ws.to_string_lossy().to_string(),
             pack_path.to_string_lossy().to_string(),
         ]);
         assert!(res_rm.is_ok());
-        if let Some(p) = prev {
-            let _ = std::env::set_current_dir(p);
-        }
     }
 
     #[test]

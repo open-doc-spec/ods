@@ -12,8 +12,7 @@ Rules for coding agents in the **Open Document Spec** monorepo.
 - Compliance: **compliant | non-compliant** only (no Level 0–3)
 - Discovery: `ods overview` / `find` / `ls` / `tree` / `context` / `read` — progressive CLI, not folder indexes
 - Editors: **`ods lsp`** · Watcher: `ods serve` / `ods start` (not LSP); serve target **≤10 MB** RSS (`service.max_rss_mb`)
-- Do not invent `odc:` or `ods-cli:` frontmatter keys
-- Specs live at repo-root **`specs/{ods,okf,skills}/`** — start at `intro.md` + `keys.md`
+- Specs live in satellite repo [open-doc-spec/ods-spec](https://github.com/open-doc-spec/ods-spec)
 - Subcommands: name after the verb (`ods profile init <name>` → name at argv index **3**)
 
 ## Keys are schema-driven
@@ -63,8 +62,14 @@ Full policy: `.agents/rules/40-quality-gates.md`. Multi-step work: `.agents/skil
 | **This file** | Hand-maintained (this monorepo). **Do not** run `ods agents sync` at repo root — it skips overwrite when `.agents/rules/` exists. |
 | `.agents/rules/*` | Always-on short rules |
 | `.agents/skills/*` | Task skills (maintainer) |
-| `skills/ods/` | **End-user** product skill only (no CI/coverage process) |
+| Satellite: `ods-skills` | **End-user** product skill: [open-doc-spec/ods-skills](https://github.com/open-doc-spec/ods-skills) |
+| Satellite: `ods-spec` | Normative docs: [open-doc-spec/ods-spec](https://github.com/open-doc-spec/ods-spec) |
+| Satellite: `opendocify.com` | Site: [open-doc-spec/opendocify.com](https://github.com/open-doc-spec/opendocify.com) (**private**) |
+| Satellite: `ods-benchmarks` | Fixture benchmarks: [open-doc-spec/ods-benchmarks](https://github.com/open-doc-spec/ods-benchmarks) |
+| Satellite: `ods-action` | GitHub Action: [open-doc-spec/ods-action](https://github.com/open-doc-spec/ods-action) |
 | Nested `**/AGENTS.md` | Crate/folder specifics |
+
+Satellite map: `docs/maintainer/satellite-repos.md`.
 
 ## Useful commands
 

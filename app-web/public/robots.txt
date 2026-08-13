@@ -1,9 +1,0 @@
-# robots.txt for Open Document Spec (ODS) — https://opendocify.com
-User-agent: *
-Allow: /
-
-# Host
-Host: https://opendocify.com
-
-# Sitemap
-Sitemap: https://opendocify.com/sitemap.xml

@@ -41,7 +41,7 @@ There is **no** `--ods` flag and **no** `ods okf` / `ods ods` namespaces (`ods o
 
 When assisting users inside an ODS workspace, follow these operational directives:
 
-- ❓ **WHAT**: Recognize ODS workspaces by root `ods.toml` (`spec`). Keep files as `.md`. Title is H1 only (no FM `title:`); optional top-level `name:` is fine.
+- ❓ **WHAT**: Recognize ODS workspaces by root `ods.toml` (`spec`). Keep files as `.md`. For standalone agent instructions, prefer `agent.md` with the ODS `agent` profile; keep `SKILL.md` for installable skills. Title is H1 only (no FM `title:`); optional top-level `name:` is fine.
 - 💡 **WHY (token discipline)**: Prefer `ods read <id> [--section <heading>] [--summary] [--max-tokens N]` or `ods context <id> [--max-tokens N] [--print]` for a **bounded** read (depends + `context.load` only — **not** `related`). Read only those sections/paths. Never dump the repo or use full graph export for routine Q&A. On “document not found”, run `ods find <query>` / `ods find --key …` — do not load all markdown.
 - 🧭 **COLD-START**: New workspace turn → `ods overview` (snapshot) → `ods tag list` / `ods schema keys` if needed → `ods find --tag` / `--key` to locate a target → `ods context <id>`. Do not replace context with overview for deep work.
 - 🚨 **ERRORS**: CLI prints `error:`/`usage:` + `Next:` (sometimes `Hint:`). Surface that Next line to the user; do not invent a different recovery. Common: not a workspace → `ods init`; miss → `ods find`; tags under `ods:` → `ods fmt --migrate`.

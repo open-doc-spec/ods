@@ -1,6 +1,8 @@
 # Contributing to Open Document Spec (ODS)
 
-Thank you for improving ODS. This repository holds the **spec**, **guide**, and **Rust reference implementation** (`ods` CLI).
+Thank you for improving ODS. This repository holds the **Rust reference implementation** (`ods` CLI), maintainer tooling, and **first-cut mirrors** of product surfaces that are also extracted to satellite repos under [open-doc-spec](https://github.com/open-doc-spec).
+
+See **`docs/maintainer/satellite-repos.md`** for SoT vs mirror policy (site, specs, skill, benchmarks, action). Prefer satellite PRs for those surfaces after seed merges; keep monorepo trees in sync for first cut.
 
 ## Development setup
 
@@ -24,18 +26,20 @@ cargo install --path src/ods-cli --bin ods --locked --force
 
 | Path | Role |
 | --- | --- |
-| `specs/` | Normative specification (ODS keys stay `ods:`) |
-| `docs/guide/` | End-user guide (keep in sync with `app-web/src/content/docs/`) |
+| `specs/` | Normative specification (mirror; SoT: [ods-spec](https://github.com/open-doc-spec/ods-spec)) |
+| `docs/guide/` | End-user guide (keep in sync with site content) |
 | `docs/plan/` | Historical plans (CLI UX is **flag-only**; see banners) |
 | `docs/other-specs/` | OKF / Agent Skills key maps & notes |
-| `docs/maintainer/` | Coverage, functional style |
+| `docs/maintainer/` | Coverage, functional style, **satellite-repos.md** |
 | `CHANGELOG.md` | Optional manual release history |
-| `skills/ods` | AI assistant skill (`ods skill install`) |
+| `skills/ods` | AI assistant skill mirror (SoT: [ods-skills](https://github.com/open-doc-spec/ods-skills)) |
+| `app-web/` | Site mirror (SoT: [opendocify.com](https://github.com/open-doc-spec/opendocify.com), private) |
 | `src/ods-core` | Core library (ODS + OKF + Skills engines) |
 | `src/ods-cli` | Primary binary `ods` |
 | `src/ods-test-support` | Test workspace support library |
-| `src/scripts/` | install, check-local, coverage, smoke-ods |
-| `src/action/` | GitHub composite action |
+| `src/scripts/` | install, check-local, coverage, smoke-ods (**canonical installers**) |
+| `src/action/` + `action.yml` | GitHub action mirror (SoT: [ods-action](https://github.com/open-doc-spec/ods-action)) |
+| `src/fixtures/benchmarks/` | Bench fixtures mirror (SoT: [ods-benchmarks](https://github.com/open-doc-spec/ods-benchmarks)) |
 
 ### CLI crate layout (`src/ods-cli/src/`)
 

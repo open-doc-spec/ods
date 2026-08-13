@@ -76,16 +76,21 @@ mod test_profile_commands {
         let res = run_aliases_command(&["ods".into(), "alias".into(), "--help".into()]);
         assert!(res.is_ok());
 
-        // list
-        let res = run_aliases_command(&["ods".into(), "alias".into(), "list".into()]);
-        assert!(res.is_ok());
-
         let err = run_aliases_command(&["ods".into(), "alias".into(), "add".into(), "Overview".into()]).unwrap_err();
         assert!(err.message().contains("Synonym"));
 
         // create index.ods.md and add alias
         let index_path = root.join("index.ods.md");
         fs::write(&index_path, "---\nprofile: index\nods: 0.1\n---\n\n# Root\n").unwrap();
+
+        // list
+        let res = run_aliases_command(&[
+            "ods".into(),
+            "alias".into(),
+            "list".into(),
+            root.to_str().unwrap().into(),
+        ]);
+        assert!(res.is_ok());
 
         let res = run_aliases_command(&[
             "ods".into(),
@@ -100,6 +105,14 @@ mod test_profile_commands {
         let content = fs::read_to_string(&index_path).unwrap();
         assert!(content.contains("Overview"));
         assert!(content.contains("Summary"));
+
+        let res = run_aliases_command(&[
+            "ods".into(),
+            "alias".into(),
+            "list".into(),
+            root.to_str().unwrap().into(),
+        ]);
+        assert!(res.is_ok());
     }
 
     #[test]

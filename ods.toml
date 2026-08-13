@@ -4,9 +4,7 @@ spec = "0.1"
 ignore = [
   "src/fixtures",
   "ods-test",
-  "skills",
   "docs/plan/archive",
-  "app-web",
   "src"
 ]
 

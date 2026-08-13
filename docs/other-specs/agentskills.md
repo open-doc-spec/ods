@@ -227,6 +227,8 @@ The optional `allowed-tools` field:
 
 The Markdown body after the frontmatter contains the skill instructions. There are no format restrictions. Write whatever helps agents perform the task effectively.
 
+For a standalone agent instruction file outside a package, use `agent.md` with the ODS `agent` profile and the standardized Markdown headings from the ODS profile guide.
+
 Recommended sections:
 
 * Step-by-step instructions
