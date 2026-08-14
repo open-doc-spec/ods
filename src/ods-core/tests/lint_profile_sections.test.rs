@@ -119,6 +119,107 @@ fn unknown_profile_warns() {
 }
 
 #[test]
+fn expected_keys_match_top_level_custom_frontmatter_values() {
+    let dir = temp_workspace();
+    fs::create_dir_all(dir.join("ods-profiles")).unwrap();
+    fs::write(
+        dir.join("ods.toml"),
+        "spec = \"0.1\"\ncustom_profiles = [\"ods-profiles\"]\n",
+    )
+    .unwrap();
+    fs::write(
+        dir.join("ods-profiles/incident.md"),
+        "---\nname: incident\nexpected_keys:\n  - GitHub-Issue\n  - service\n---\n\n# Incident\n",
+    )
+    .unwrap();
+    fs::write(
+        dir.join("valid.md"),
+        "---\nprofile: incident\ngithub-issue:\n  provider: github\n  number: 123\nservice: checkout\n---\n\n# Valid\n",
+    )
+    .unwrap();
+    fs::write(
+        dir.join("missing.md"),
+        "---\nprofile: incident\nservice: checkout\n---\n\n# Missing\n",
+    )
+    .unwrap();
+    fs::write(
+        dir.join("null.md"),
+        "---\nprofile: incident\ngithub-issue: null\nservice: checkout\n---\n\n# Null\n",
+    )
+    .unwrap();
+    fs::write(
+        dir.join("quoted.md"),
+        "---\nprofile: incident\ngithub-issue: \"null\"\nservice: checkout\n---\n\n# Quoted\n",
+    )
+    .unwrap();
+
+    let workspace = load_workspace(&dir).unwrap();
+    let diagnostics = lint_workspace(&workspace);
+    let missing = diagnostics
+        .iter()
+        .filter(|diagnostic| diagnostic.message.contains("missing expected key"))
+        .collect::<Vec<_>>();
+
+    assert_eq!(missing.len(), 2, "{diagnostics:#?}");
+    assert!(
+        missing
+            .iter()
+            .any(|diagnostic| diagnostic.path.ends_with("missing.md"))
+    );
+    assert!(
+        missing
+            .iter()
+            .any(|diagnostic| diagnostic.path.ends_with("null.md"))
+    );
+    assert!(
+        !missing
+            .iter()
+            .any(|diagnostic| diagnostic.path.ends_with("valid.md"))
+    );
+    assert!(
+        !missing
+            .iter()
+            .any(|diagnostic| diagnostic.path.ends_with("quoted.md"))
+    );
+}
+
+#[test]
+fn expected_keys_treat_empty_known_lists_as_non_null() {
+    let dir = temp_workspace();
+    fs::create_dir_all(dir.join("ods-profiles")).unwrap();
+    fs::write(
+        dir.join("ods.toml"),
+        "spec = \"0.1\"\ncustom_profiles = [\"ods-profiles\"]\n",
+    )
+    .unwrap();
+    fs::write(
+        dir.join("ods-profiles/empty-list.md"),
+        "---\nname: empty-list\nexpected_keys:\n  - tags\n---\n\n# Empty List\n",
+    )
+    .unwrap();
+    fs::write(
+        dir.join("valid-empty-list.md"),
+        "---\nprofile: empty-list\ntags: []\n---\n\n# Valid\n",
+    )
+    .unwrap();
+    fs::write(
+        dir.join("null-list.md"),
+        "---\nprofile: empty-list\ntags: null\n---\n\n# Null\n",
+    )
+    .unwrap();
+
+    let workspace = load_workspace(&dir).unwrap();
+    let diagnostics = lint_workspace(&workspace);
+    let missing = diagnostics
+        .iter()
+        .filter(|diagnostic| diagnostic.message.contains("missing expected key"))
+        .collect::<Vec<_>>();
+
+    assert_eq!(missing.len(), 1, "{diagnostics:#?}");
+    assert!(missing[0].path.ends_with("null-list.md"));
+}
+
+#[test]
 fn dangling_reference_errors() {
     let dir = temp_workspace();
     write_root(&dir, "- [a.md](a.md)\n");
