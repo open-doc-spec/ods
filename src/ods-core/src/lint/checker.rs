@@ -30,32 +30,6 @@ pub fn workspace_aliases(workspace: &Workspace) -> BTreeMap<String, BTreeSet<Str
             .or_insert_with(BTreeSet::new)
             .extend(values.iter().cloned());
     }
-    if !aliases.is_empty() {
-        return aliases;
-    }
-    // Legacy root index during migration.
-    let root_index = workspace
-        .document_by_path(&workspace.root.join("index.ods.md"))
-        .or_else(|| {
-            workspace.documents.iter().find(|document| {
-                document
-                    .path
-                    .file_name()
-                    .is_some_and(|name| name == "index.ods.md" || name == "index.md")
-            })
-        });
-
-    let Some(frontmatter) = root_index.and_then(frontmatter) else {
-        return aliases;
-    };
-
-    for (canonical, values) in &frontmatter.aliases {
-        aliases
-            .entry(canonical.clone())
-            .or_insert_with(BTreeSet::new)
-            .extend(values.iter().cloned());
-    }
-
     aliases
 }
 
