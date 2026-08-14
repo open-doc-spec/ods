@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, HashMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::path::PathBuf;
 
 #[must_use]
@@ -125,13 +125,16 @@ pub struct WorkspaceSpecsConfig {
 }
 
 /// Eq-safe custom frontmatter value (unknown top-level keys only).
-/// Nested maps are not supported and parse as [`CustomValue::Null`].
+///
+/// Structured values are retained as opaque values so callers can distinguish
+/// them from an explicit YAML null when checking whether a key is present.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub enum CustomValue {
     #[default]
     Null,
     String(String),
     List(Vec<String>),
+    Opaque,
 }
 
 impl CustomValue {
@@ -147,6 +150,7 @@ impl CustomValue {
                 }
             }
             CustomValue::List(items) => items.iter().filter(|s| !s.is_empty()).cloned().collect(),
+            CustomValue::Opaque => Vec::new(),
         }
     }
 }
@@ -180,6 +184,9 @@ pub struct Frontmatter {
     pub title: Option<String>,
     pub expected_keys: Vec<String>,
     pub specs: WorkspaceSpecsConfig,
+    /// Known top-level keys whose YAML value was explicitly non-null.
+    /// This preserves presence for empty lists, which have no model entries.
+    pub non_null_keys: BTreeSet<String>,
     /// Non-standard top-level frontmatter keys (custom profiles, domain metadata).
     /// Keys are stored lowercased. Read-only for query — not rewritten by fmt/migrate.
     pub custom_keys: BTreeMap<String, CustomValue>,

@@ -141,10 +141,7 @@ fn lint_document(
             let profile = frontmatter.profile.as_deref().unwrap_or("note");
             if let Some(def) = workspace.profiles.definitions.get(profile) {
                 for key in &def.expected_keys {
-                    let key_present = (frontmatter.owner.is_some() && key == "owner")
-                        || (frontmatter.description.is_some() && key == "description")
-                        || document.body.contains(&format!("{key}:"));
-                    if !key_present {
+                    if !expected_key_is_present(frontmatter, key) {
                         diagnostics.push(Diagnostic {
                             path: document.path.clone(),
                             severity: Severity::Warning,
@@ -184,6 +181,43 @@ fn lint_document(
     }
 
     diagnostics
+}
+
+fn expected_key_is_present(frontmatter: &crate::model::Frontmatter, key: &str) -> bool {
+    use crate::model::CustomValue;
+
+    let key = key.trim().to_lowercase();
+    match key.as_str() {
+        "profile" => frontmatter.profile.is_some(),
+        "status" => frontmatter.status.is_some(),
+        "created" | "created_at" | "date" => frontmatter.created.is_some(),
+        "updated" | "last_updated" | "updated_at" => frontmatter.updated.is_some(),
+        "share" => frontmatter.share.is_some(),
+        "description" => frontmatter.description.is_some(),
+        "id" => frontmatter.id.is_some(),
+        "profiles" | "custom-profiles" => frontmatter.non_null_keys.contains("profiles"),
+        "packs" => frontmatter.non_null_keys.contains("packs"),
+        "depends" => frontmatter.non_null_keys.contains("depends"),
+        "related" => frontmatter.non_null_keys.contains("related"),
+        "resources" => frontmatter.non_null_keys.contains("resources"),
+        "code" => frontmatter.non_null_keys.contains("code"),
+        "context" => frontmatter.non_null_keys.contains("context"),
+        "owner" => frontmatter.owner.is_some(),
+        "tags" => frontmatter.non_null_keys.contains("tags") && !frontmatter.tags_misplaced,
+        "ods" => frontmatter.ods.is_some(),
+        "aliases" => frontmatter.non_null_keys.contains("aliases"),
+        "ignore" => frontmatter.non_null_keys.contains("ignore"),
+        "name" => frontmatter.name.is_some(),
+        "title" => frontmatter.title.is_some(),
+        "expected_keys" | "expected-keys" => !frontmatter.expected_keys.is_empty(),
+        "specs" => frontmatter.non_null_keys.contains("specs"),
+        "okf_lint" | "okf-lint" => frontmatter.non_null_keys.contains("okf_lint"),
+        "skills_lint" | "skills-lint" => frontmatter.non_null_keys.contains("skills_lint"),
+        _ => frontmatter
+            .custom_keys
+            .get(&key)
+            .is_some_and(|value| !matches!(value, CustomValue::Null)),
+    }
 }
 
 fn lint_root_ods_metadata(workspace: &Workspace) -> Vec<Diagnostic> {

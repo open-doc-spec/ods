@@ -223,17 +223,20 @@ fn parse_frontmatter(block: &str) -> Result<Frontmatter, String> {
             "profiles" | "custom-profiles" => {
                 let (items, next) = parse_string_list(&lines, index, 2, rest);
                 frontmatter.profiles.extend(items);
+                mark_non_null_key(&mut frontmatter, "profiles", rest, index, next);
                 index = next;
             }
             "packs" => {
                 let (items, next) = parse_string_list(&lines, index, 2, rest);
                 frontmatter.packs.extend(items);
+                mark_non_null_key(&mut frontmatter, "packs", rest, index, next);
                 index = next;
             }
             "name" => frontmatter.name = scalar_value(rest),
             "expected_keys" | "expected-keys" => {
                 let (items, next) = parse_string_list(&lines, index, 2, rest);
                 frontmatter.expected_keys.extend(items);
+                mark_non_null_key(&mut frontmatter, "expected_keys", rest, index, next);
                 index = next;
             }
             "ignore" => {
@@ -244,6 +247,7 @@ fn parse_frontmatter(block: &str) -> Result<Frontmatter, String> {
                         .map(|s| s.replace('\\', "/").trim_end_matches('/').to_string())
                         .filter(|s| !s.is_empty()),
                 );
+                mark_non_null_key(&mut frontmatter, "ignore", rest, index, next);
                 index = next;
             }
             "depends" => {
@@ -253,6 +257,7 @@ fn parse_frontmatter(block: &str) -> Result<Frontmatter, String> {
                         .into_iter()
                         .map(|s| s.replace("\\", "/").to_lowercase()),
                 );
+                mark_non_null_key(&mut frontmatter, "depends", rest, index, next);
                 index = next;
             }
             "related" => {
@@ -262,6 +267,7 @@ fn parse_frontmatter(block: &str) -> Result<Frontmatter, String> {
                         .into_iter()
                         .map(|s| s.replace("\\", "/").to_lowercase()),
                 );
+                mark_non_null_key(&mut frontmatter, "related", rest, index, next);
                 index = next;
             }
             "tags" => {
@@ -272,41 +278,49 @@ fn parse_frontmatter(block: &str) -> Result<Frontmatter, String> {
                         frontmatter.tags.push(n);
                     }
                 }
+                mark_non_null_key(&mut frontmatter, "tags", rest, index, next);
                 index = next;
             }
             "resources" => {
                 let (items, next) = parse_resources(&lines, index, 2)?;
                 frontmatter.resources.extend(items);
+                mark_non_null_key(&mut frontmatter, "resources", rest, index, next);
                 index = next;
             }
             "code" => {
                 let (items, next) = parse_code_refs(&lines, index, 2)?;
                 frontmatter.code.extend(items);
+                mark_non_null_key(&mut frontmatter, "code", rest, index, next);
                 index = next;
             }
             "context" => {
                 let (context, next) = parse_context(&lines, index, 2)?;
                 frontmatter.context = Some(context);
+                mark_non_null_key(&mut frontmatter, "context", rest, index, next);
                 index = next;
             }
             "aliases" => {
                 let (aliases, next) = parse_aliases(&lines, index, 2);
                 frontmatter.aliases.extend(aliases);
+                mark_non_null_key(&mut frontmatter, "aliases", rest, index, next);
                 index = next;
             }
             "specs" => {
                 let (specs, next) = parse_specs_config(&lines, index, 2);
                 frontmatter.specs = specs;
+                mark_non_null_key(&mut frontmatter, "specs", rest, index, next);
                 index = next;
             }
             "okf_lint" | "okf-lint" => {
                 let (cfg, next) = parse_spec_lint_config(&lines, index, 2);
                 frontmatter.specs.okf = cfg;
+                mark_non_null_key(&mut frontmatter, "okf_lint", rest, index, next);
                 index = next;
             }
             "skills_lint" | "skills-lint" => {
                 let (cfg, next) = parse_spec_lint_config(&lines, index, 2);
                 frontmatter.specs.skills = cfg;
+                mark_non_null_key(&mut frontmatter, "skills_lint", rest, index, next);
                 index = next;
             }
             _ => {
