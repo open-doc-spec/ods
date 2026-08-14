@@ -34,7 +34,7 @@ mod test_profile_commands {
         assert!(err.message().contains("name"));
 
         let err = run_profile_show_command(&["ods".into(), "profile".into(), "show".into(), "nonexistent_xyz".into()]).unwrap_err();
-        assert!(err.message().contains("unknown profile"));
+    assert!(err.message().contains("profile not found"));
     }
 
     #[test]

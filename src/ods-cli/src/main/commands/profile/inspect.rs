@@ -1,10 +1,7 @@
 fn run_profile_list_command(args: &[String]) -> Result<ExitCode, CliError> {
     let (root, _level, format) = parse_common_flags(args, 2)?;
-    let workspace = load_workspace(&root).ok();
-    let roots = workspace
-        .as_ref()
-        .map(|ws| ods_core::profile_catalog_roots_from_config(&root, &ws.config))
-        .unwrap_or_default();
+    let workspace = load_workspace(&root).map_err(|err| fail_load(&root, err))?;
+    let roots = ods_core::profile_catalog_roots_from_config(&root, &workspace.config);
     let catalog = load_profile_catalog(&root, &roots).map_err(|err| fail_io("profile", err))?;
 
     match format {
@@ -67,18 +64,18 @@ fn run_profile_show_command(args: &[String]) -> Result<ExitCode, CliError> {
         .unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
     let root = resolve_root_path(root);
 
-    let workspace = load_workspace(&root).ok();
-    let roots = workspace
-        .as_ref()
-        .map(|ws| ods_core::profile_catalog_roots_from_config(&root, &ws.config))
-        .unwrap_or_default();
+    let workspace = load_workspace(&root).map_err(|err| fail_load(&root, err))?;
+    let roots = ods_core::profile_catalog_roots_from_config(&root, &workspace.config);
     let catalog = load_profile_catalog(&root, &roots).map_err(|err| fail_io("profile", err))?;
 
     let def = catalog.definitions.get(profile_name.as_str()).ok_or_else(|| {
         fail_msg(ods_core::UserMsg::new(
-            "unknown_profile",
+            "profile_not_found",
             ods_core::ErrorStage::Resolve,
-            format!("unknown profile: {profile_name}"),
+            ods_core::error::lint_unknown_profile_with_sources(
+                profile_name,
+                &workspace.config.custom_profiles,
+            ),
         )
         .next("ods profiles  # list available profiles")
         .hint("ods profile init <name>  # scaffold + register a custom profile"))

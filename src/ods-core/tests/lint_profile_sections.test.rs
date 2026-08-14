@@ -101,7 +101,7 @@ fn stale_root_ods_version_errors() {
 }
 
 #[test]
-fn unknown_profile_warns() {
+fn unknown_profile_is_an_error() {
     let dir = temp_workspace();
     write_root(&dir, "- [a.md](a.md)\n");
     fs::write(
@@ -114,8 +114,51 @@ fn unknown_profile_warns() {
     assert!(
         diags
             .iter()
-            .any(|d| { d.severity == Severity::Warning && d.message.contains("unknown profile") })
+            .any(|d| { d.severity == Severity::Error && d.message.contains("profile not found") })
     );
+}
+
+#[test]
+fn missing_custom_profile_path_is_a_load_error() {
+    let dir = temp_workspace();
+    fs::write(
+        dir.join("ods.toml"),
+        "spec = \"0.1\"\ncustom_profiles = [\"docs/profiles/incident.md\"]\n",
+    )
+    .unwrap();
+
+    let error = load_workspace(&dir).expect_err("missing configured profile path must fail");
+    let message = error.to_string();
+    assert!(message.contains("custom profile path not found"), "{message}");
+    assert!(message.contains("docs/profiles/incident.md"), "{message}");
+    assert!(message.contains("custom_profiles"), "{message}");
+}
+
+#[test]
+fn custom_profile_metadata_outside_registered_path_is_a_load_error() {
+    let dir = temp_workspace();
+    fs::create_dir_all(dir.join("docs/profiles")).unwrap();
+    fs::write(
+        dir.join("ods.toml"),
+        "spec = \"0.1\"\ncustom_profiles = [\"docs/profiles/incident.md\"]\n",
+    )
+    .unwrap();
+    fs::write(
+        dir.join("docs/profiles/incident.md"),
+        "---\nods:\n  custom_profile:\n    name: incident\n---\n\n# Incident\n",
+    )
+    .unwrap();
+    fs::write(
+        dir.join("ordinary.md"),
+        "---\nods:\n  custom_profile:\n    name: wrong-place\n---\n\n# Ordinary\n",
+    )
+    .unwrap();
+
+    let error = load_workspace(&dir).expect_err("unregistered profile metadata must fail");
+    let message = error.to_string();
+    assert!(message.contains("invalid ods.custom_profile"), "{message}");
+    assert!(message.contains("ordinary.md"), "{message}");
+    assert!(message.contains("docs/profiles/incident.md"), "{message}");
 }
 
 #[test]

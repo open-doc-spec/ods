@@ -161,8 +161,11 @@ fn lint_document(
             } else {
                 diagnostics.push(Diagnostic {
                     path: document.path.clone(),
-                    severity: Severity::Warning,
-                    message: crate::error::lint_unknown_profile(profile),
+                    severity: Severity::Error,
+                    message: crate::error::lint_unknown_profile_with_sources(
+                        profile,
+                        &workspace.config.custom_profiles,
+                    ),
                 });
             }
 

@@ -477,6 +477,17 @@ pub fn lint_unknown_profile(profile: &str) -> String {
     format!("unknown profile: {profile}")
 }
 
+pub fn lint_unknown_profile_with_sources(profile: &str, configured_paths: &[String]) -> String {
+    let paths = if configured_paths.is_empty() {
+        "(none)".to_string()
+    } else {
+        configured_paths.join(", ")
+    };
+    format!(
+        "profile not found: {profile} (custom profile definitions are loaded only from paths declared by custom_profiles in ods.toml: {paths})"
+    )
+}
+
 pub fn lint_missing_expected_section(section: &str) -> String {
     format!("missing expected section: {section}")
 }

@@ -13,7 +13,7 @@ fn graph_keys_and_context_work_end_to_end() {
     let dir = tempdir();
     fs::write(
         dir.path().join("ods.toml"),
-        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
+        "spec = \"0.1\"\n",
     )
     .unwrap();
     fs::create_dir_all(dir.path().join("specs")).unwrap();
@@ -62,7 +62,7 @@ fn code_refs_are_in_context_and_export() {
     let dir = tempdir();
     fs::write(
         dir.path().join("ods.toml"),
-        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
+        "spec = \"0.1\"\n",
     )
     .unwrap();
     fs::create_dir_all(dir.path().join("src/routes")).unwrap();
@@ -168,7 +168,7 @@ fn markdown_document_refs_resolve_and_canonical_lint_warns_on_legacy_ids() {
     let dir = tempdir();
     fs::write(
         dir.path().join("ods.toml"),
-        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
+        "spec = \"0.1\"\n",
     )
     .unwrap();
     fs::create_dir_all(dir.path().join("website")).unwrap();
@@ -208,7 +208,7 @@ fn fmt_md_paths_rewrites_document_refs_only() {
     let dir = tempdir();
     fs::write(
         dir.path().join("ods.toml"),
-        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
+        "spec = \"0.1\"\n",
     )
     .unwrap();
     fs::create_dir_all(dir.path().join("website")).unwrap();
