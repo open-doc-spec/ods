@@ -1,4 +1,3 @@
-
 fn lint_cycles(workspace: &Workspace, ids: &BTreeMap<String, Vec<&Document>>) -> Vec<Diagnostic> {
     let graph = dependency_graph(workspace, ids);
     let mut diagnostics = Vec::new();
@@ -150,7 +149,7 @@ fn lint_document(
                     }
                 }
                 for key in &def.forbidden_keys {
-                    if required_key_is_present(frontmatter, key) {
+                    if frontmatter_key_is_present(frontmatter, key) {
                         diagnostics.push(Diagnostic {
                             path: document.path.clone(),
                             severity: Severity::Warning,
@@ -231,6 +230,26 @@ fn required_key_is_present(frontmatter: &crate::model::Frontmatter, key: &str) -
     }
 }
 
+fn frontmatter_key_is_present(frontmatter: &crate::model::Frontmatter, key: &str) -> bool {
+    let key = key.trim().to_lowercase();
+    let aliases: &[&str] = match key.as_str() {
+        "created" | "created_at" | "date" => &["created", "created_at", "date"],
+        "updated" | "last_updated" | "updated_at" => &["updated", "last_updated", "updated_at"],
+        "profiles" | "custom-profiles" => &["profiles", "custom-profiles"],
+        "okf_lint" | "okf-lint" => &["okf_lint", "okf-lint"],
+        "skills_lint" | "skills-lint" => &["skills_lint", "skills-lint"],
+        _ => &[""],
+    };
+
+    if aliases == [""] {
+        frontmatter.present_keys.contains(&key)
+    } else {
+        aliases
+            .iter()
+            .any(|alias| frontmatter.present_keys.contains(*alias))
+    }
+}
+
 fn lint_root_ods_metadata(workspace: &Workspace) -> Vec<Diagnostic> {
     let toml_path = crate::config::ods_toml_path(&workspace.root);
     if !toml_path.is_file() {
@@ -296,7 +315,13 @@ fn is_valid_date_str(s: &str) -> bool {
     if s.len() < 8 {
         return false;
     }
-    let date_part = s.split('T').next().unwrap_or(s).split(' ').next().unwrap_or(s);
+    let date_part = s
+        .split('T')
+        .next()
+        .unwrap_or(s)
+        .split(' ')
+        .next()
+        .unwrap_or(s);
     let parts: Vec<&str> = date_part.split('-').collect();
     if parts.len() == 3 {
         parts[0].len() == 4
@@ -334,7 +359,11 @@ mod test_canonical_dates_and_cycles {
 
         let ws = load_workspace(root).unwrap();
         let diags = crate::lint_workspace(&ws);
-        assert!(diags.iter().any(|d| d.message.contains("created") || d.message.contains("updated")));
+        assert!(
+            diags
+                .iter()
+                .any(|d| d.message.contains("created") || d.message.contains("updated"))
+        );
     }
 
     #[test]
@@ -354,6 +383,8 @@ mod test_canonical_dates_and_cycles {
 
         let ws = load_workspace(root).unwrap();
         let diags = crate::lint_workspace(&ws);
-        assert!(diags.iter().any(|d| d.message.contains("dangling") || d.message.contains("pack") || d.message.contains("ODS version")));
+        assert!(diags.iter().any(|d| d.message.contains("dangling")
+            || d.message.contains("pack")
+            || d.message.contains("ODS version")));
     }
 }

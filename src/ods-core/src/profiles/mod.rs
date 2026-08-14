@@ -1,5 +1,6 @@
 use crate::model::{Document, FrontmatterState, ProfileCatalog, ProfileDefinition};
 use crate::parse::{extract_heading_groups, parse_document_text};
+use std::collections::HashSet;
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
@@ -146,8 +147,8 @@ pub fn profile_catalog_roots_from_config(
         }
     }
 
-    roots.sort();
-    roots.dedup();
+    let mut seen = HashSet::new();
+    roots.retain(|root| seen.insert(root.clone()));
     roots
 }
 

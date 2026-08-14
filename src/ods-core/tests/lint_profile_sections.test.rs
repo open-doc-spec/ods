@@ -207,6 +207,11 @@ fn required_keys_match_top_level_custom_frontmatter_values() {
         "---\nprofile: incident\ntitle: Legacy title\ngithub-issue: 456\nservice: checkout\n---\n\n# Forbidden\n",
     )
     .unwrap();
+    fs::write(
+        dir.join("forbidden-null.md"),
+        "---\nprofile: incident\ntitle: null\ngithub-issue: 456\nservice: checkout\n---\n\n# Forbidden Null\n",
+    )
+    .unwrap();
 
     let workspace = load_workspace(&dir).unwrap();
     let diagnostics = lint_workspace(&workspace);
@@ -242,6 +247,40 @@ fn required_keys_match_top_level_custom_frontmatter_values() {
             .any(|diagnostic| diagnostic.path.ends_with("forbidden.md")
                 && diagnostic.message.contains("forbidden key 'title'")),
         "{diagnostics:#?}"
+    );
+    assert!(
+        diagnostics
+            .iter()
+            .any(|diagnostic| diagnostic.path.ends_with("forbidden-null.md")
+                && diagnostic.message.contains("forbidden key 'title'")),
+        "{diagnostics:#?}"
+    );
+}
+
+#[test]
+fn invalid_custom_profile_key_policy_is_a_load_error() {
+    let dir = temp_workspace();
+    fs::create_dir_all(dir.join("ods-profiles")).unwrap();
+    fs::write(
+        dir.join("ods.toml"),
+        "spec = \"0.1\"\ncustom_profiles = [\"ods-profiles\"]\n",
+    )
+    .unwrap();
+    fs::write(
+        dir.join("ods-profiles/invalid.md"),
+        "---\nods:\n  custom_profile:\n    name: invalid\n    required_keys: null\n---\n\n# Invalid\n",
+    )
+    .unwrap();
+
+    let error = load_workspace(&dir).expect_err("invalid profile key list must fail");
+    let message = error.to_string();
+    assert!(
+        message.contains("invalid custom profile definition"),
+        "{message}"
+    );
+    assert!(
+        message.contains("required_keys must be a list"),
+        "{message}"
     );
 }
 

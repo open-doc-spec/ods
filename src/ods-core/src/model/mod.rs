@@ -187,6 +187,9 @@ pub struct Frontmatter {
     /// Known top-level keys whose YAML value was explicitly non-null.
     /// This preserves presence for empty lists, which have no model entries.
     pub non_null_keys: BTreeSet<String>,
+    /// All top-level keys encountered, including keys with an explicit null.
+    /// This is used by forbidden-key validation, where null is still present.
+    pub present_keys: BTreeSet<String>,
     /// Non-standard top-level frontmatter keys (custom profiles, domain metadata).
     /// Keys are stored lowercased. Read-only for query — not rewritten by fmt/migrate.
     pub custom_keys: BTreeMap<String, CustomValue>,

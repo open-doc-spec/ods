@@ -148,6 +148,7 @@ fn parse_frontmatter(block: &str) -> Result<Frontmatter, String> {
 
         let key = key.trim();
         let rest = rest.trim();
+        frontmatter.present_keys.insert(key.to_lowercase());
 
         if key == "title" {
             frontmatter.title = scalar_value(rest);

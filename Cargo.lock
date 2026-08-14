@@ -584,6 +584,7 @@ dependencies = [
  "sha2",
  "tar",
  "tempfile",
+ "toml_edit",
  "ureq",
  "zip",
 ]

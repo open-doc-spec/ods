@@ -1,3 +1,6 @@
+use std::io as std_io;
+use toml_edit::{Array as TomlArray, DocumentMut, Item as TomlItem, Value as TomlValue};
+
 fn run_profile_init_command(args: &[String]) -> Result<ExitCode, CliError> {
     // argv: ods profile init <name>  → name at index 3
     let profile_name = args
@@ -82,9 +85,7 @@ ods:
                 println!("  - {rel_register}");
             }
             Ok(RegisterResult::NoRootIndex) => {
-                println!(
-                    "warning: missing ods.toml — profile not registered"
-                );
+                println!("warning: missing ods.toml — profile not registered");
                 println!("Next: ods init  then re-run: ods profile init {profile_name}");
             }
             Err(e) => return Err(e),
@@ -122,44 +123,69 @@ fn register_custom_profile_in_root(
     }
 
     let text = fs::read_to_string(&toml_path).map_err(|e| fail_io("profile", e))?;
-    if profile_entry_already_listed(&text, rel_entry) {
+    let (updated, already_registered) = insert_custom_profile_into_ods_toml(&text, rel_entry)
+        .map_err(|err| fail_io("profile registration", err))?;
+    if already_registered {
         return Ok(RegisterResult::AlreadyRegistered(toml_path));
     }
 
-    let updated = insert_custom_profile_into_ods_toml(&text, rel_entry);
     fs::write(&toml_path, updated).map_err(|e| fail_io("profile", e))?;
     Ok(RegisterResult::Registered(toml_path))
 }
 
-fn profile_entry_already_listed(text: &str, rel_entry: &str) -> bool {
-    text.contains(&format!("\"{rel_entry}\""))
-        || text.contains(&format!("'{rel_entry}'"))
-        || text.lines().any(|l| l.trim() == rel_entry || l.trim() == format!("- {rel_entry}"))
+fn insert_custom_profile_into_ods_toml(
+    text: &str,
+    rel_entry: &str,
+) -> std_io::Result<(String, bool)> {
+    let mut document = text.parse::<DocumentMut>().map_err(|err| {
+        std_io::Error::new(
+            std_io::ErrorKind::InvalidData,
+            format!("invalid ods.toml: {err}"),
+        )
+    })?;
+
+    let item = document
+        .entry("custom_profiles")
+        .or_insert(TomlItem::Value(TomlValue::Array(TomlArray::new())));
+    let array = item.as_array_mut().ok_or_else(|| {
+        std_io::Error::new(
+            std_io::ErrorKind::InvalidData,
+            "custom_profiles in ods.toml must be an array",
+        )
+    })?;
+
+    if array.iter().any(|value| value.as_str() == Some(rel_entry)) {
+        return Ok((text.to_string(), true));
+    }
+
+    array.push(rel_entry);
+    Ok((document.to_string(), false))
 }
 
-fn insert_custom_profile_into_ods_toml(text: &str, rel_entry: &str) -> String {
-    if text.contains("custom_profiles") {
-        // Append entry before closing bracket of array if present.
-        if let Some(idx) = text.find("custom_profiles") {
-            let after = &text[idx..];
-            if let Some(bracket) = after.find('[') {
-                let abs = idx + bracket;
-                let rest = &text[abs + 1..];
-                if let Some(end) = rest.find(']') {
-                    let abs_end = abs + 1 + end;
-                    let insert = if text[abs + 1..abs_end].trim().is_empty() {
-                        format!("\n  \"{rel_entry}\",\n")
-                    } else {
-                        format!("\n  \"{rel_entry}\",")
-                    };
-                    return format!("{}{}{}", &text[..abs_end], insert, &text[abs_end..]);
-                }
-            }
-        }
+#[cfg(test)]
+mod tests {
+    use super::insert_custom_profile_into_ods_toml;
+
+    #[test]
+    fn registration_ignores_comments_and_updates_root_array() {
+        let source =
+            "# custom_profiles = [\"comment-only\"]\nspec = \"0.1\"\n[service]\nmode = \"poll\"\n";
+        let (updated, already) =
+            insert_custom_profile_into_ods_toml(source, ".ods/profiles/incident.md").unwrap();
+
+        assert!(!already);
+        assert!(updated.contains("custom_profiles = [\".ods/profiles/incident.md\"]"));
+        assert!(updated.contains("# custom_profiles = [\"comment-only\"]"));
     }
-    if let Some(first_section_idx) = text.find("\n[") {
-        format!("{}\ncustom_profiles = [\"{rel_entry}\"]{}", &text[..first_section_idx], &text[first_section_idx..])
-    } else {
-        format!("{}\ncustom_profiles = [\"{rel_entry}\"]\n", text.trim_end())
+
+    #[test]
+    fn registration_reports_non_array_custom_profiles() {
+        let error = insert_custom_profile_into_ods_toml(
+            "spec = \"0.1\"\ncustom_profiles = \"not-an-array\"\n",
+            ".ods/profiles/incident.md",
+        )
+        .expect_err("non-array custom_profiles must fail");
+
+        assert!(error.to_string().contains("must be an array"));
     }
 }
