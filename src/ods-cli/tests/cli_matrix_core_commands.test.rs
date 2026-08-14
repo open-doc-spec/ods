@@ -188,7 +188,7 @@ custom_profiles = ["ods-profiles"]
         "mv should rewrite depends: {mover}"
     );
 
-    assert_ok(&run(&["lint", "--level", "1", root]), "lint level 1");
+    assert!(!run(&["lint", "--level", "1", root]).status.success());
     assert_ok(&run(&["lint", root]), "lint after ops");
 
     // enable/disable round-trip (opt-in / opt-out) — body preserved

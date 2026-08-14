@@ -83,7 +83,6 @@ Also: `ods lsp` — JSON-RPC Language Server for editors (stdio; not the same as
 
 Flags:
   --version, -V            Print version and exit
-  --level 1|3              Lint strictness (default 3)
   --format text|json       Output format for supported commands (default text)
   --okf                    Extra-spec: OKF v0.2
   --skills                 Extra-spec: Agent Skills

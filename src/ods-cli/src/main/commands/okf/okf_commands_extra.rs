@@ -121,7 +121,7 @@ fn run_okf_export_command(args: &[String]) -> Result<ExitCode, CliError> {
                 out = args.get(i + 1).map(PathBuf::from);
                 i += 2;
             }
-            "--format" | "--mode" | "--level" => {
+            "--format" => {
                 i += 2;
             }
             other if other.starts_with("--out=") => {

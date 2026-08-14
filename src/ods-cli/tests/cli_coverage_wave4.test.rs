@@ -224,7 +224,7 @@ fn coverage_and_audit_and_clean_reports() {
     let _ = ods().args(["audit", root, "--write-report"]).output();
     let _ = ods().args(["clean", root]).output();
     let _ = ods().args(["tree", root, "--format", "json"]).output();
-    let _ = ods().args(["stats", root, "--level", "1"]).output();
+    let _ = ods().args(["stats", root]).output();
 }
 
 #[test]
@@ -473,7 +473,7 @@ fn okf_extra_commands_surface() {
     );
 
     for args in [
-        vec!["lint", "--okf", root, "--level", "1"],
+        vec!["lint", "--okf", root],
         vec!["lint", "--okf", root, "--format", "json"],
         vec!["doctor", "--okf", root, "--format", "json"],
         vec!["audit", "--okf", root, "--write-report"],

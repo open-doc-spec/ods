@@ -92,7 +92,7 @@ fn run_find_command(args: &[String]) -> Result<ExitCode, CliError> {
                 keys.push(format!("owner={v}"));
                 i += 2;
             }
-            "--level" | "--format" | "--mode" | "--root" => i += 2,
+            "--format" | "--root" => i += 2,
             "--all" | "--write" | "--check" | "--force" | "--help" | "-h" => i += 1,
             other if other.starts_with('-') => {
                 return Err(usage_msg(ods_core::unknown_flag(other, "ods find --help")));

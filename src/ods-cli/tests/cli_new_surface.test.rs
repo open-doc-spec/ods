@@ -300,7 +300,7 @@ fn profile_fmt_disable_doctor_and_flag_matrix() {
 
     // lint flag variants
     for args in [
-        vec!["lint", root, "--level", "standard"],
+        vec!["lint", root],
         vec!["lint", root, "--skip-frontmatter-keys"],
         vec!["lint", root, "--ignore-keys", "status,share"],
         vec!["lint", root, "--format", "json"],
