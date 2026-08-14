@@ -164,7 +164,7 @@ ods adopt docs/                    # Auto-draft frontmatter on legacy Markdown
 
 ## 📘 Custom Profiles Specification
 
-Custom profiles define domain document schemas, expected frontmatter keys, and starter templates.
+Custom profiles define domain document schemas, profile key policies, and starter templates.
 
 ### Single-Source Registration in Root `ods.toml`
 
@@ -184,8 +184,6 @@ custom_profiles = [
 
 ```markdown
 ---
-name: api_endpoint
-description: "REST/GraphQL API Endpoint Specification"
 ods:
   custom_profile:
     name: api_endpoint
@@ -209,10 +207,10 @@ ods:
 ## Verification & Testing
 ```
 
-- **`ods.profile: custom-profile`**: Identifies the file explicitly as a Custom Profile Schema Definition.
+- **`ods.custom_profile.name`**: Names the profile represented by this registered definition file. Target documents select it with `ods.profile: api_endpoint`.
 - **`required_keys`**: List of top-level frontmatter keys required on target documents during `ods lint`.
 - **`optional_keys`**: List of top-level frontmatter keys documented as useful but not required.
-- **`forbidden_keys`**: List of top-level frontmatter keys that profile documents must not contain.
+- **`forbidden_keys`**: List of top-level frontmatter keys that target documents using the profile must not contain.
 - **H2 & H3 Hierarchies**: `ods lint` validates parent `## H2` and child `### H3` section trees.
 
 ---
