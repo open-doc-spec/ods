@@ -134,14 +134,20 @@ fn should_ignore_name(name: &std::ffi::OsStr) -> bool {
 
 fn profile_definition_from_document(document: &Document) -> Option<ProfileDefinition> {
     let mut name = profile_name_from_path(&document.path)?;
-    let mut expected_keys = Vec::new();
+    let mut required_keys = Vec::new();
+    let mut optional_keys = Vec::new();
+    let mut forbidden_keys = Vec::new();
     let mut sections = extract_heading_groups(&document.body);
 
     if let FrontmatterState::Parsed(frontmatter) = &document.frontmatter {
-        if let Some(ref explicit_name) = frontmatter.name {
-            name = explicit_name.clone();
+        if let Some(definition) = &frontmatter.custom_profile {
+            if let Some(explicit_name) = &definition.name {
+                name = explicit_name.clone();
+            }
+            required_keys.clone_from(&definition.required_keys);
+            optional_keys.clone_from(&definition.optional_keys);
+            forbidden_keys.clone_from(&definition.forbidden_keys);
         }
-        expected_keys.clone_from(&frontmatter.expected_keys);
         for (canonical, aliases) in &frontmatter.aliases {
             if let Some(group) = sections
                 .iter_mut()
@@ -167,7 +173,9 @@ fn profile_definition_from_document(document: &Document) -> Option<ProfileDefini
     Some(ProfileDefinition {
         name,
         sections,
-        expected_keys,
+        required_keys,
+        optional_keys,
+        forbidden_keys,
         source: document.path.clone(),
     })
 }
@@ -320,7 +328,9 @@ fn profile(name: &str, sections: Vec<Vec<&str>>) -> ProfileDefinition {
             .into_iter()
             .map(|group| group.into_iter().map(|value| value.to_string()).collect())
             .collect(),
-        expected_keys: vec![],
+        required_keys: vec![],
+        optional_keys: vec![],
+        forbidden_keys: vec![],
         source: PathBuf::from(format!("<builtin:{name}>")),
     }
 }

@@ -313,7 +313,7 @@ fn profiles_load_custom_definitions_from_dir() {
     fs::create_dir_all(&prof).unwrap();
     fs::write(
         prof.join("custom.md"),
-        "---\nprofile: profile\nname: custom\nexpected_keys:\n  - owner\n---\n\n# Custom Profile\n\n## Overview\n\n## Details\n",
+        "---\nods:\n  custom_profile:\n    name: custom\n    required_keys:\n      - owner\n---\n\n# Custom Profile\n\n## Overview\n\n## Details\n",
     )
     .unwrap();
     // update root index

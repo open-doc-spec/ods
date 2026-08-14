@@ -211,6 +211,9 @@ fn parse_frontmatter(block: &str) -> Result<Frontmatter, String> {
                     if nested_fm.context.is_some() {
                         frontmatter.context = nested_fm.context;
                     }
+                    if nested_fm.custom_profile.is_some() {
+                        frontmatter.custom_profile = nested_fm.custom_profile;
+                    }
                     // Nested tags under ods: are invalid (root-only contract). Merge into the
                     // model so lint/find can surface them; migrate must hoist to top-level.
                     if !nested_fm.tags.is_empty() || nested_fm.tags_misplaced {
@@ -233,12 +236,6 @@ fn parse_frontmatter(block: &str) -> Result<Frontmatter, String> {
                 index = next;
             }
             "name" => frontmatter.name = scalar_value(rest),
-            "expected_keys" | "expected-keys" => {
-                let (items, next) = parse_string_list(&lines, index, 2, rest);
-                frontmatter.expected_keys.extend(items);
-                mark_non_null_key(&mut frontmatter, "expected_keys", rest, index, next);
-                index = next;
-            }
             "ignore" => {
                 let (items, next) = parse_string_list(&lines, index, 2, rest);
                 frontmatter.ignore.extend(

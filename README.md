@@ -76,7 +76,7 @@ Progress from initial setup to enterprise documentation architecture across 4 st
 |---|---|---|
 | ⚡ **Deterministic Bounded Context Graph** | `ods context <doc-id>` | Bounded AI reading scope (<5ms) following `depends:` + `context.load` (not full-repo dump). |
 | 🔍 **Multi-criteria AI discovery** | `ods find` / `ods overview` / `ods schema keys` | Find by tag and frontmatter keys (`--key`, `--status`, …); cold-start snapshot; list registered schema keys. |
-| 📋 **Custom Profile Schema Engine** | `ods profile` / `custom_profiles (ods.toml):` | Single-source profile schema registration in `ods.toml`, enforcing `expected_keys` and `H2`/`H3` section hierarchies. |
+| 📋 **Custom Profile Schema Engine** | `ods profile` / `custom_profiles (ods.toml):` | Single-source profile schema registration in `ods.toml`, enforcing required/optional/forbidden keys and `H2`/`H3` section hierarchies. |
 | 📊 **Workspace Document Telemetry** | `ods stats` | Reports document health score %, graph dependency density, profile distribution, and top taxonomy tags. |
 | 🌳 **Visual Tree Representation** | `ods tree` | Displays visual ASCII/Unicode hierarchy tree of index navigation and dependency graphs. |
 | 🔄 **Smart Rename & Dependency Healing** | `ods mv <src> <dst>` | Renames files while automatically rewriting graph dependencies, relative body links, and code references. |
@@ -186,12 +186,14 @@ custom_profiles = [
 ---
 name: api_endpoint
 description: "REST/GraphQL API Endpoint Specification"
-expected_keys:
-  - service
-  - endpoint_url
 ods:
-  profile: custom-profile
-  status: stable
+  custom_profile:
+    name: api_endpoint
+    required_keys:
+      - service
+      - endpoint_url
+    optional_keys: []
+    forbidden_keys: []
 ---
 
 # API Endpoint Profile
@@ -208,7 +210,9 @@ ods:
 ```
 
 - **`ods.profile: custom-profile`**: Identifies the file explicitly as a Custom Profile Schema Definition.
-- **`expected_keys`**: List of frontmatter fields enforced on target documents during `ods lint`.
+- **`required_keys`**: List of top-level frontmatter keys required on target documents during `ods lint`.
+- **`optional_keys`**: List of top-level frontmatter keys documented as useful but not required.
+- **`forbidden_keys`**: List of top-level frontmatter keys that profile documents must not contain.
 - **H2 & H3 Hierarchies**: `ods lint` validates parent `## H2` and child `### H3` section trees.
 
 ---

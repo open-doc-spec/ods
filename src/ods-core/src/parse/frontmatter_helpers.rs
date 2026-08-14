@@ -87,6 +87,12 @@ pub fn parse_nested_ods_map(
                 frontmatter.context = Some(context);
                 index = next;
             }
+            "custom_profile" => {
+                let (definition, next) =
+                    parse_custom_profile_definition(lines, index + 1, item_indent);
+                frontmatter.custom_profile = Some(definition);
+                index = next;
+            }
             // Nested tags under ods: are invalid placement (universal keys are root-only).
             // Still parse values into the model so tools can surface them until migrate hoists
             // them to top-level; callers set tags_misplaced on the parent Frontmatter.
@@ -109,6 +115,61 @@ pub fn parse_nested_ods_map(
     }
 
     Ok((frontmatter, index))
+}
+
+pub fn parse_custom_profile_definition(
+    lines: &[&str],
+    start: usize,
+    min_indent: usize,
+) -> (crate::model::CustomProfileDefinition, usize) {
+    let mut index = start;
+    let mut definition = crate::model::CustomProfileDefinition::default();
+
+    while let Some(raw_line) = lines.get(index) {
+        if raw_line.trim().is_empty() {
+            index += 1;
+            continue;
+        }
+        if indent(raw_line) < min_indent {
+            break;
+        }
+
+        let trimmed = raw_line.trim_start();
+        let Some((key, rest)) = trimmed.split_once(':') else {
+            break;
+        };
+        let key = key.trim();
+        let rest = rest.trim();
+        let item_indent = min_indent + 2;
+
+        match key {
+            "name" => {
+                definition.name = scalar_value(rest);
+                index += 1;
+            }
+            "required_keys" => {
+                let (items, next) = parse_string_list(lines, index + 1, item_indent, rest);
+                definition.required_keys.extend(items);
+                index = next;
+            }
+            "optional_keys" => {
+                let (items, next) = parse_string_list(lines, index + 1, item_indent, rest);
+                definition.optional_keys.extend(items);
+                index = next;
+            }
+            "forbidden_keys" => {
+                let (items, next) = parse_string_list(lines, index + 1, item_indent, rest);
+                definition.forbidden_keys.extend(items);
+                index = next;
+            }
+            _ => {
+                let (_, next) = parse_passthrough_block(lines, index + 1, item_indent);
+                index = next;
+            }
+        }
+    }
+
+    (definition, index)
 }
 
 pub fn scalar_value(text: &str) -> Option<String> {

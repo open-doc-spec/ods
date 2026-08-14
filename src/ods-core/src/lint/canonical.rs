@@ -140,12 +140,21 @@ fn lint_document(
 
             let profile = frontmatter.profile.as_deref().unwrap_or("note");
             if let Some(def) = workspace.profiles.definitions.get(profile) {
-                for key in &def.expected_keys {
-                    if !expected_key_is_present(frontmatter, key) {
+                for key in &def.required_keys {
+                    if !required_key_is_present(frontmatter, key) {
                         diagnostics.push(Diagnostic {
                             path: document.path.clone(),
                             severity: Severity::Warning,
-                            message: crate::error::lint_missing_expected_key(key, profile),
+                            message: crate::error::lint_missing_required_key(key, profile),
+                        });
+                    }
+                }
+                for key in &def.forbidden_keys {
+                    if required_key_is_present(frontmatter, key) {
+                        diagnostics.push(Diagnostic {
+                            path: document.path.clone(),
+                            severity: Severity::Warning,
+                            message: crate::error::lint_forbidden_profile_key(key, profile),
                         });
                     }
                 }
@@ -183,7 +192,7 @@ fn lint_document(
     diagnostics
 }
 
-fn expected_key_is_present(frontmatter: &crate::model::Frontmatter, key: &str) -> bool {
+fn required_key_is_present(frontmatter: &crate::model::Frontmatter, key: &str) -> bool {
     use crate::model::CustomValue;
 
     let key = key.trim().to_lowercase();
@@ -209,7 +218,6 @@ fn expected_key_is_present(frontmatter: &crate::model::Frontmatter, key: &str) -
         "ignore" => frontmatter.non_null_keys.contains("ignore"),
         "name" => frontmatter.name.is_some(),
         "title" => frontmatter.title.is_some(),
-        "expected_keys" | "expected-keys" => !frontmatter.expected_keys.is_empty(),
         "specs" => frontmatter.non_null_keys.contains("specs"),
         "okf_lint" | "okf-lint" => frontmatter.non_null_keys.contains("okf_lint"),
         "skills_lint" | "skills-lint" => frontmatter.non_null_keys.contains("skills_lint"),

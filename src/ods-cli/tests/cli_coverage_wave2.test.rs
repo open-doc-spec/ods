@@ -189,7 +189,7 @@ fn profiles_list_and_init_profile_doc() {
     fs::create_dir_all(&prof_dir).unwrap();
     fs::write(
         prof_dir.join("custom.md"),
-        "---\nprofile: profile\nname: custom\nexpected_keys:\n  - owner\n---\n\n# Custom\n\n## Overview\n\n## Details\n",
+        "---\nods:\n  custom_profile:\n    name: custom\n    required_keys:\n      - owner\n---\n\n# Custom\n\n## Overview\n\n## Details\n",
     )
     .unwrap();
     // point root at custom profiles

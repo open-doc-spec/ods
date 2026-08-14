@@ -40,13 +40,13 @@ fn run_profile_init_command(args: &[String]) -> Result<ExitCode, CliError> {
     } else {
         let template = format!(
             "---
-name: {profile_name}
-description: \"Custom profile definition for {profile_name}\"
-expected_keys:
-  - owner
 ods:
-  profile: custom-profile
-  status: stable
+  custom_profile:
+    name: {profile_name}
+    required_keys:
+      - owner
+    optional_keys: []
+    forbidden_keys: []
 ---
 
 # {profile_name} Profile

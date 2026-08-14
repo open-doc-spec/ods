@@ -1,5 +1,6 @@
 mod test_profile_commands {
     use super::*;
+    use std::fs;
     use tempfile::tempdir;
 
     #[test]
@@ -55,6 +56,11 @@ mod test_profile_commands {
 
         let profile_file = root.join(".ods").join("profiles").join("custom-spec.md");
         assert!(profile_file.exists());
+        let profile_text = fs::read_to_string(&profile_file).unwrap();
+        assert!(profile_text.contains("custom_profile:"));
+        assert!(profile_text.contains("required_keys:"));
+        assert!(profile_text.contains("optional_keys:"));
+        assert!(profile_text.contains("forbidden_keys:"));
 
         // duplicate init
         let res = run_profile_init_command(&[
