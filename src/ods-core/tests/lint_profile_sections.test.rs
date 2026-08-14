@@ -129,7 +129,10 @@ fn missing_custom_profile_path_is_a_load_error() {
 
     let error = load_workspace(&dir).expect_err("missing configured profile path must fail");
     let message = error.to_string();
-    assert!(message.contains("custom profile path not found"), "{message}");
+    assert!(
+        message.contains("custom profile path not found"),
+        "{message}"
+    );
     assert!(message.contains("docs/profiles/incident.md"), "{message}");
     assert!(message.contains("custom_profiles"), "{message}");
 }

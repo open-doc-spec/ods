@@ -67,12 +67,7 @@ pub fn load_workspace_with_options(
     let mut workspace_ignore = config.ignore.clone();
     workspace_ignore.extend(load_odsignore_patterns(&root));
 
-    let paths = discover_markdown_paths(
-        &root,
-        &profile_roots,
-        &gitignore,
-        &workspace_ignore,
-    )?;
+    let paths = discover_markdown_paths(&root, &profile_roots, &gitignore, &workspace_ignore)?;
 
     let documents = parse_paths_parallel(&root, &paths, options.include_body)?;
     validate_custom_profile_placements(&root, &documents, &profile_roots, &config)?;

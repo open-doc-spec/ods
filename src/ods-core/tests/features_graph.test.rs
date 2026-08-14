@@ -11,11 +11,7 @@ fn tempdir() -> tempfile::TempDir {
 #[test]
 fn graph_keys_and_context_work_end_to_end() {
     let dir = tempdir();
-    fs::write(
-        dir.path().join("ods.toml"),
-        "spec = \"0.1\"\n",
-    )
-    .unwrap();
+    fs::write(dir.path().join("ods.toml"), "spec = \"0.1\"\n").unwrap();
     fs::create_dir_all(dir.path().join("specs")).unwrap();
     fs::write(
         dir.path().join("impl.md"),
@@ -60,11 +56,7 @@ fn graph_keys_and_context_work_end_to_end() {
 #[test]
 fn code_refs_are_in_context_and_export() {
     let dir = tempdir();
-    fs::write(
-        dir.path().join("ods.toml"),
-        "spec = \"0.1\"\n",
-    )
-    .unwrap();
+    fs::write(dir.path().join("ods.toml"), "spec = \"0.1\"\n").unwrap();
     fs::create_dir_all(dir.path().join("src/routes")).unwrap();
     fs::write(
         dir.path().join("src/routes/checkout.tsx"),
@@ -166,11 +158,7 @@ fn duplicate_ids_and_missing_refs_are_reported() {
 #[test]
 fn markdown_document_refs_resolve_and_canonical_lint_warns_on_legacy_ids() {
     let dir = tempdir();
-    fs::write(
-        dir.path().join("ods.toml"),
-        "spec = \"0.1\"\n",
-    )
-    .unwrap();
+    fs::write(dir.path().join("ods.toml"), "spec = \"0.1\"\n").unwrap();
     fs::create_dir_all(dir.path().join("website")).unwrap();
     fs::write(
         dir.path().join("website/cart-checkout.md"),
@@ -206,11 +194,7 @@ fn markdown_document_refs_resolve_and_canonical_lint_warns_on_legacy_ids() {
 #[test]
 fn fmt_md_paths_rewrites_document_refs_only() {
     let dir = tempdir();
-    fs::write(
-        dir.path().join("ods.toml"),
-        "spec = \"0.1\"\n",
-    )
-    .unwrap();
+    fs::write(dir.path().join("ods.toml"), "spec = \"0.1\"\n").unwrap();
     fs::create_dir_all(dir.path().join("website")).unwrap();
     fs::create_dir_all(dir.path().join("resources")).unwrap();
     fs::create_dir_all(dir.path().join("src")).unwrap();
