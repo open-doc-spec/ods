@@ -133,7 +133,11 @@ fn missing_custom_profile_path_is_a_load_error() {
         message.contains("custom profile path not found"),
         "{message}"
     );
-    assert!(message.contains("docs/profiles/incident.md"), "{message}");
+    let expected_path = format!(
+        "docs{separator}profiles{separator}incident.md",
+        separator = std::path::MAIN_SEPARATOR
+    );
+    assert!(message.contains(&expected_path), "{message}");
     assert!(message.contains("custom_profiles"), "{message}");
 }
 
