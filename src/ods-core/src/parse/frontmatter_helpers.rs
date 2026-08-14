@@ -113,7 +113,14 @@ pub fn scalar_value(text: &str) -> Option<String> {
         return None;
     }
 
-    Some(unquote(text))
+    let quoted = (text.starts_with('"') && text.ends_with('"'))
+        || (text.starts_with('\'') && text.ends_with('\''));
+    let value = unquote(text);
+    if !quoted && (value == "~" || value.eq_ignore_ascii_case("null")) {
+        None
+    } else {
+        Some(value)
+    }
 }
 
 pub fn parse_heading_group(heading: &str) -> Vec<String> {
@@ -238,7 +245,7 @@ pub fn parse_specs_config(
 }
 
 /// Parse an unknown top-level frontmatter value (scalar or string list).
-/// Nested maps / non-list blocks are skipped as [`CustomValue::Null`] without
+/// Nested maps / non-list blocks are retained as opaque non-null values without
 /// advancing past following sibling keys incorrectly when a block list is absent.
 pub fn parse_custom_value(
     lines: &[&str],
@@ -254,7 +261,13 @@ pub fn parse_custom_value(
             return (CustomValue::List(items), start);
         }
         // Bare numbers/bools are stored as strings for exact query match.
-        return (CustomValue::String(unquote(inline)), start);
+        let quoted = (inline.starts_with('"') && inline.ends_with('"'))
+            || (inline.starts_with('\'') && inline.ends_with('\''));
+        let value = unquote(inline);
+        if !quoted && (value == "~" || value.eq_ignore_ascii_case("null")) {
+            return (CustomValue::Null, start);
+        }
+        return (CustomValue::String(value), start);
     }
 
     let mut index = start;
@@ -282,10 +295,11 @@ pub fn parse_custom_value(
             items.push(String::new());
             index += 1;
         } else {
-            // Nested map or other block — not supported for custom query values.
+            // Nested map or other block is not queryable as strings, but it is
+            // still a non-null value for expected-key presence checks.
             // Consume the nested block so subsequent keys are not lost.
             let (_, next) = parse_passthrough_block(lines, index, min_indent);
-            return (CustomValue::Null, next);
+            return (CustomValue::Opaque, next);
         }
     }
 
@@ -295,4 +309,3 @@ pub fn parse_custom_value(
         (CustomValue::Null, start)
     }
 }
-

@@ -84,8 +84,8 @@ depends:
             fm.custom_keys.get("labels"),
             Some(&CustomValue::List(vec!["a".into(), "b".into()]))
         );
-        // Nested map not queryable as strings.
-        assert_eq!(fm.custom_keys.get("nested"), Some(&CustomValue::Null));
+        // Nested maps are not queryable as strings, but remain present values.
+        assert_eq!(fm.custom_keys.get("nested"), Some(&CustomValue::Opaque));
         assert!(doc.body.contains("Body stays"));
     }
 
