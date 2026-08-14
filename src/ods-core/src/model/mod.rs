@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, HashMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::path::PathBuf;
 
 #[must_use]
@@ -184,6 +184,9 @@ pub struct Frontmatter {
     pub title: Option<String>,
     pub expected_keys: Vec<String>,
     pub specs: WorkspaceSpecsConfig,
+    /// Known top-level keys whose YAML value was explicitly non-null.
+    /// This preserves presence for empty lists, which have no model entries.
+    pub non_null_keys: BTreeSet<String>,
     /// Non-standard top-level frontmatter keys (custom profiles, domain metadata).
     /// Keys are stored lowercased. Read-only for query — not rewritten by fmt/migrate.
     pub custom_keys: BTreeMap<String, CustomValue>,

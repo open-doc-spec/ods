@@ -59,6 +59,7 @@ pub fn parse_nested_ods_map(
                         .into_iter()
                         .map(|s| s.replace('\\', "/").to_lowercase()),
                 );
+                mark_non_null_key(&mut frontmatter, "depends", rest, index, next);
                 index = next;
             }
             "related" => {
@@ -68,6 +69,7 @@ pub fn parse_nested_ods_map(
                         .into_iter()
                         .map(|s| s.replace('\\', "/").to_lowercase()),
                 );
+                mark_non_null_key(&mut frontmatter, "related", rest, index, next);
                 index = next;
             }
             "resources" => {
@@ -96,6 +98,7 @@ pub fn parse_nested_ods_map(
                     }
                 }
                 frontmatter.tags_misplaced = true;
+                mark_non_null_key(&mut frontmatter, "tags", rest, index, next);
                 index = next;
             }
             _ => {
@@ -120,6 +123,28 @@ pub fn scalar_value(text: &str) -> Option<String> {
         None
     } else {
         Some(value)
+    }
+}
+
+pub fn mark_non_null_key(
+    frontmatter: &mut crate::model::Frontmatter,
+    key: &str,
+    inline: &str,
+    start: usize,
+    next: usize,
+) {
+    let inline = inline.trim();
+    let quoted = (inline.starts_with('"') && inline.ends_with('"'))
+        || (inline.starts_with('\'') && inline.ends_with('\''));
+    let non_null = if inline.is_empty() {
+        next > start
+    } else {
+        let value = unquote(inline);
+        quoted || (value != "~" && !value.eq_ignore_ascii_case("null"))
+    };
+
+    if non_null {
+        frontmatter.non_null_keys.insert(key.to_lowercase());
     }
 }
 
