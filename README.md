@@ -190,8 +190,6 @@ ods:
     required_keys:
       - service
       - endpoint_url
-    optional_keys: []
-    forbidden_keys: []
 ---
 
 # API Endpoint Profile
@@ -211,6 +209,7 @@ ods:
 - **`required_keys`**: List of top-level frontmatter keys required on target documents during `ods lint`.
 - **`optional_keys`**: List of top-level frontmatter keys documented as useful but not required.
 - **`forbidden_keys`**: List of top-level frontmatter keys that target documents using the profile must not contain.
+- Each of these three policy keys accepts one or more key names, with one `-` entry per name. If a policy has no entries, omit it; `[]` is an optional YAML notation for an empty list.
 - **H2 & H3 Hierarchies**: `ods lint` validates parent `## H2` and child `### H3` section trees.
 
 ---
