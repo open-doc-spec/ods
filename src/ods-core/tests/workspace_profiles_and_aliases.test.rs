@@ -227,7 +227,7 @@ fn duplicate_profile_names_are_reported() {
             .get("custom")
             .expect("custom")
             .source,
-        temp.join("more-profiles")
+        temp.join("ods-profiles")
             .join("custom.md")
             .canonicalize()
             .unwrap()

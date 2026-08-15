@@ -312,8 +312,13 @@ fn profiles_load_custom_definitions_from_dir() {
     let prof = root.join("ods-profiles");
     fs::create_dir_all(&prof).unwrap();
     fs::write(
+        root.join("ods.toml"),
+        "spec = \"0.1\"\ncustom_profiles = [\"ods-profiles\"]\n",
+    )
+    .unwrap();
+    fs::write(
         prof.join("custom.md"),
-        "---\nprofile: profile\nname: custom\nexpected_keys:\n  - owner\n---\n\n# Custom Profile\n\n## Overview\n\n## Details\n",
+        "---\nods:\n  custom_profile:\n    name: custom\n    required_keys:\n      - owner\n---\n\n# Custom Profile\n\n## Overview\n\n## Details\n",
     )
     .unwrap();
     // update root index

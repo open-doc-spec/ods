@@ -1,8 +1,101 @@
 use crate::model::{Document, FrontmatterState, ProfileCatalog, ProfileDefinition};
 use crate::parse::{extract_heading_groups, parse_document_text};
+use std::collections::HashSet;
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
+
+/// Validate every explicitly configured custom-profile path before loading it.
+///
+/// `custom_profiles` is the source of truth for profile definitions. Missing or
+/// non-Markdown entries must fail workspace loading instead of being silently
+/// skipped.
+pub fn validate_custom_profile_paths(
+    root: &Path,
+    config: &crate::config::WorkspaceConfig,
+) -> io::Result<()> {
+    let config_path = root.join("ods.toml");
+    for declared in &config.custom_profiles {
+        let path = root.join(declared);
+        let metadata = fs::metadata(&path).map_err(|err| {
+            io::Error::new(
+                err.kind(),
+                format!(
+                    "custom profile path not found: {} (declared by custom_profiles in {})",
+                    path.display(),
+                    config_path.display()
+                ),
+            )
+        })?;
+
+        if !metadata.is_file() && !metadata.is_dir() {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!(
+                    "custom profile path is not a file or directory: {} (declared by custom_profiles in {})",
+                    path.display(),
+                    config_path.display()
+                ),
+            ));
+        }
+
+        if metadata.is_file() && path.extension().and_then(|ext| ext.to_str()) != Some("md") {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!(
+                    "custom profile definition must be a Markdown file: {} (declared by custom_profiles in {})",
+                    path.display(),
+                    config_path.display()
+                ),
+            ));
+        }
+    }
+    Ok(())
+}
+
+/// Reject profile-definition metadata in documents that are not registered
+/// profile-definition files.
+pub fn validate_custom_profile_placements(
+    root: &Path,
+    documents: &[Document],
+    profile_roots: &[PathBuf],
+    config: &crate::config::WorkspaceConfig,
+) -> io::Result<()> {
+    let config_path = root.join("ods.toml");
+    let declared_paths = if config.custom_profiles.is_empty() {
+        "(none)".to_string()
+    } else {
+        config.custom_profiles.join(", ")
+    };
+
+    for document in documents {
+        let FrontmatterState::Parsed(frontmatter) = &document.frontmatter else {
+            continue;
+        };
+        if frontmatter.custom_profile.is_some()
+            && !is_registered_profile_path(&document.path, profile_roots)
+        {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!(
+                    "invalid ods.custom_profile in {}: the file is not registered in custom_profiles from {} (registered paths: {}). Define the profile at a registered path and use ods.profile in this document",
+                    document.path.display(),
+                    config_path.display(),
+                    declared_paths
+                ),
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn is_registered_profile_path(path: &Path, profile_roots: &[PathBuf]) -> bool {
+    let path = path.canonicalize().unwrap_or_else(|_| path.to_path_buf());
+    profile_roots.iter().any(|root| {
+        let root = root.canonicalize().unwrap_or_else(|_| root.to_path_buf());
+        path == root || path.strip_prefix(&root).is_ok()
+    })
+}
 
 pub fn standard_profile_catalog() -> ProfileCatalog {
     let mut catalog = ProfileCatalog::default();
@@ -54,8 +147,8 @@ pub fn profile_catalog_roots_from_config(
         }
     }
 
-    roots.sort();
-    roots.dedup();
+    let mut seen = HashSet::new();
+    roots.retain(|root| seen.insert(root.clone()));
     roots
 }
 
@@ -64,11 +157,23 @@ pub fn load_profile_catalog(root: &Path, roots: &[PathBuf]) -> io::Result<Profil
 
     for profile_root in roots {
         if !profile_root.exists() {
-            continue;
+            return Err(io::Error::new(
+                io::ErrorKind::NotFound,
+                format!("custom profile path not found: {}", profile_root.display()),
+            ));
         }
 
         let mut paths = Vec::new();
         if profile_root.is_file() {
+            if profile_root.extension().and_then(|ext| ext.to_str()) != Some("md") {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!(
+                        "custom profile definition must be a Markdown file: {}",
+                        profile_root.display()
+                    ),
+                ));
+            }
             paths.push(profile_root.clone());
         } else {
             collect_markdown_paths(profile_root, &mut paths)?;
@@ -78,6 +183,16 @@ pub fn load_profile_catalog(root: &Path, roots: &[PathBuf]) -> io::Result<Profil
         for path in paths {
             let text = fs::read_to_string(&path)?;
             let document = parse_document_text(root, path.clone(), &text, true);
+            if let FrontmatterState::Invalid(message) = &document.frontmatter {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!(
+                        "invalid custom profile definition at {}: {}",
+                        path.display(),
+                        message
+                    ),
+                ));
+            }
             if let Some(definition) = profile_definition_from_document(&document) {
                 if let Some(existing) = catalog.definitions.get(&definition.name) {
                     catalog.conflicts.push(crate::model::ProfileConflict {
@@ -134,14 +249,20 @@ fn should_ignore_name(name: &std::ffi::OsStr) -> bool {
 
 fn profile_definition_from_document(document: &Document) -> Option<ProfileDefinition> {
     let mut name = profile_name_from_path(&document.path)?;
-    let mut expected_keys = Vec::new();
+    let mut required_keys = Vec::new();
+    let mut optional_keys = Vec::new();
+    let mut forbidden_keys = Vec::new();
     let mut sections = extract_heading_groups(&document.body);
 
     if let FrontmatterState::Parsed(frontmatter) = &document.frontmatter {
-        if let Some(ref explicit_name) = frontmatter.name {
-            name = explicit_name.clone();
+        if let Some(definition) = &frontmatter.custom_profile {
+            if let Some(explicit_name) = &definition.name {
+                name = explicit_name.clone();
+            }
+            required_keys.clone_from(&definition.required_keys);
+            optional_keys.clone_from(&definition.optional_keys);
+            forbidden_keys.clone_from(&definition.forbidden_keys);
         }
-        expected_keys.clone_from(&frontmatter.expected_keys);
         for (canonical, aliases) in &frontmatter.aliases {
             if let Some(group) = sections
                 .iter_mut()
@@ -167,7 +288,9 @@ fn profile_definition_from_document(document: &Document) -> Option<ProfileDefini
     Some(ProfileDefinition {
         name,
         sections,
-        expected_keys,
+        required_keys,
+        optional_keys,
+        forbidden_keys,
         source: document.path.clone(),
     })
 }
@@ -320,7 +443,9 @@ fn profile(name: &str, sections: Vec<Vec<&str>>) -> ProfileDefinition {
             .into_iter()
             .map(|group| group.into_iter().map(|value| value.to_string()).collect())
             .collect(),
-        expected_keys: vec![],
+        required_keys: vec![],
+        optional_keys: vec![],
+        forbidden_keys: vec![],
         source: PathBuf::from(format!("<builtin:{name}>")),
     }
 }

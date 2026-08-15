@@ -25,7 +25,7 @@ Commands:
   ls / tree [path]         Progressive discovery (no nested index files)
   profiles [path]          List loaded profiles
   profile init <name>      Scaffold custom profile (registers under custom_profiles in ods.toml)
-  profile show <name>      Show profile layer, sections, expected keys
+  profile show <name>      Show profile source, sections, and key policies
   aliases [path]           List workspace section-heading aliases
   alias add <Can> <Syn>    Add a section alias (ods.toml [aliases]; legacy root index ok)
   tags [path]              List root-level project tags (observed) with use counts

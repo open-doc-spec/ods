@@ -11,6 +11,7 @@ fn tempdir() -> tempfile::TempDir {
 }
 
 fn seed(root: &std::path::Path) {
+    fs::create_dir_all(root.join("ods-profiles")).unwrap();
     fs::write(
         root.join("ods.toml"),
         "spec = \"0.1\"\nignore = [\"vendor\"]\npacks = [\"my-pack\"]\ncustom_profiles = [\"ods-profiles\"]\n",

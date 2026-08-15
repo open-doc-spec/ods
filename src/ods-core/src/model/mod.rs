@@ -182,14 +182,25 @@ pub struct Frontmatter {
     pub ignore: Vec<String>,
     pub name: Option<String>,
     pub title: Option<String>,
-    pub expected_keys: Vec<String>,
+    pub custom_profile: Option<CustomProfileDefinition>,
     pub specs: WorkspaceSpecsConfig,
     /// Known top-level keys whose YAML value was explicitly non-null.
     /// This preserves presence for empty lists, which have no model entries.
     pub non_null_keys: BTreeSet<String>,
+    /// All top-level keys encountered, including keys with an explicit null.
+    /// This is used by forbidden-key validation, where null is still present.
+    pub present_keys: BTreeSet<String>,
     /// Non-standard top-level frontmatter keys (custom profiles, domain metadata).
     /// Keys are stored lowercased. Read-only for query — not rewritten by fmt/migrate.
     pub custom_keys: BTreeMap<String, CustomValue>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct CustomProfileDefinition {
+    pub name: Option<String>,
+    pub required_keys: Vec<String>,
+    pub optional_keys: Vec<String>,
+    pub forbidden_keys: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -213,7 +224,9 @@ pub struct Document {
 pub struct ProfileDefinition {
     pub name: String,
     pub sections: Vec<Vec<String>>,
-    pub expected_keys: Vec<String>,
+    pub required_keys: Vec<String>,
+    pub optional_keys: Vec<String>,
+    pub forbidden_keys: Vec<String>,
     pub source: PathBuf,
 }
 

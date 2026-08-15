@@ -162,6 +162,7 @@ impl SpecSchema {
         // Prefer fixed product sequence; only include keys that exist in this schema.
         const ORDER: &[&str] = &[
             "profile",
+            "custom_profile",
             "status",
             "id",
             "share",
@@ -279,6 +280,13 @@ impl SpecSchemaRegistry {
                 "Document profile type",
             ),
             KeyDefinition::new(
+                "custom_profile",
+                KeyPlacement::NestedEngineMap,
+                KeyType::Map,
+                false,
+                "Custom profile definition metadata",
+            ),
+            KeyDefinition::new(
                 "status",
                 KeyPlacement::NestedEngineMap,
                 KeyType::Enum(vec![
@@ -394,21 +402,6 @@ impl SpecSchemaRegistry {
                 false,
                 "Multi-spec activation and lint config",
             ),
-            KeyDefinition::new(
-                "name",
-                KeyPlacement::TopLevel,
-                KeyType::String,
-                false,
-                "Custom profile definition name",
-            ),
-            KeyDefinition::new(
-                "expected_keys",
-                KeyPlacement::TopLevel,
-                KeyType::List,
-                false,
-                "Required domain keys for a custom profile",
-            )
-            .with_aliases(&["expected-keys"]),
         ] {
             schema.add_key(def);
         }
@@ -624,10 +617,10 @@ impl SpecSchemaRegistry {
         self.schemas.insert("skills".into(), schema);
     }
 
-    pub fn register_custom_profile(&mut self, name: &str, expected_keys: &[String]) {
+    pub fn register_custom_profile(&mut self, name: &str, required_keys: &[String]) {
         let mut schema = SpecSchema::new(SpecKind::Custom(name.into()), "1.0");
 
-        for key_name in expected_keys {
+        for key_name in required_keys {
             schema.add_key(KeyDefinition::new(
                 key_name.clone(),
                 KeyPlacement::TopLevel,
@@ -870,7 +863,6 @@ pub fn get_document_key_values(doc: &crate::model::Document, key: &str) -> Vec<S
         "related" => fm.related.clone(),
         "packs" => fm.packs.clone(),
         "profiles" | "custom-profiles" => fm.profiles.clone(),
-        "expected_keys" | "expected-keys" => fm.expected_keys.clone(),
         "code" => fm
             .code
             .iter()
@@ -1076,6 +1068,7 @@ mod tests {
         let ods = registry.get("ods").unwrap();
         for key in [
             "profile",
+            "custom_profile",
             "status",
             "id",
             "share",
@@ -1093,6 +1086,7 @@ mod tests {
             order,
             vec![
                 "profile",
+                "custom_profile",
                 "status",
                 "id",
                 "share",

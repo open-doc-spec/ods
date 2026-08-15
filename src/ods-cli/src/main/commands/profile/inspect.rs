@@ -1,10 +1,7 @@
 fn run_profile_list_command(args: &[String]) -> Result<ExitCode, CliError> {
     let (root, _level, format) = parse_common_flags(args, 2)?;
-    let workspace = load_workspace(&root).ok();
-    let roots = workspace
-        .as_ref()
-        .map(|ws| ods_core::profile_catalog_roots_from_config(&root, &ws.config))
-        .unwrap_or_default();
+    let workspace = load_workspace(&root).map_err(|err| fail_load(&root, err))?;
+    let roots = ods_core::profile_catalog_roots_from_config(&root, &workspace.config);
     let catalog = load_profile_catalog(&root, &roots).map_err(|err| fail_io("profile", err))?;
 
     match format {
@@ -34,11 +31,13 @@ fn run_profile_list_command(args: &[String]) -> Result<ExitCode, CliError> {
                     "custom"
                 };
                 list.push(format!(
-                    r#"{{"name":{},"layer":{},"source":{},"expected_keys":{:?}}}"#,
+                    r#"{{"name":{},"layer":{},"source":{},"required_keys":{:?},"optional_keys":{:?},"forbidden_keys":{:?}}}"#,
                     json_escape(name),
                     json_escape(layer),
                     json_escape(&def.source.to_string_lossy()),
-                    def.expected_keys
+                    def.required_keys,
+                    def.optional_keys,
+                    def.forbidden_keys
                 ));
             }
             println!("[{}]", list.join(","));
@@ -65,18 +64,18 @@ fn run_profile_show_command(args: &[String]) -> Result<ExitCode, CliError> {
         .unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
     let root = resolve_root_path(root);
 
-    let workspace = load_workspace(&root).ok();
-    let roots = workspace
-        .as_ref()
-        .map(|ws| ods_core::profile_catalog_roots_from_config(&root, &ws.config))
-        .unwrap_or_default();
+    let workspace = load_workspace(&root).map_err(|err| fail_load(&root, err))?;
+    let roots = ods_core::profile_catalog_roots_from_config(&root, &workspace.config);
     let catalog = load_profile_catalog(&root, &roots).map_err(|err| fail_io("profile", err))?;
 
     let def = catalog.definitions.get(profile_name.as_str()).ok_or_else(|| {
         fail_msg(ods_core::UserMsg::new(
-            "unknown_profile",
+            "profile_not_found",
             ods_core::ErrorStage::Resolve,
-            format!("unknown profile: {profile_name}"),
+            ods_core::error::lint_unknown_profile_with_sources(
+                profile_name,
+                &workspace.config.custom_profiles,
+            ),
         )
         .next("ods profiles  # list available profiles")
         .hint("ods profile init <name>  # scaffold + register a custom profile"))
@@ -95,10 +94,20 @@ fn run_profile_show_command(args: &[String]) -> Result<ExitCode, CliError> {
     println!("profile: {profile_name}");
     println!("  layer: {layer}");
     println!("  source: {}", def.source.display());
-    if def.expected_keys.is_empty() {
-        println!("  expected_keys: (none)");
+    if def.required_keys.is_empty() {
+        println!("  required keys: (none)");
     } else {
-        println!("  expected_keys: {}", def.expected_keys.join(", "));
+        println!("  required keys: {}", def.required_keys.join(", "));
+    }
+    if def.optional_keys.is_empty() {
+        println!("  optional keys: (none)");
+    } else {
+        println!("  optional keys: {}", def.optional_keys.join(", "));
+    }
+    if def.forbidden_keys.is_empty() {
+        println!("  forbidden keys: (none)");
+    } else {
+        println!("  forbidden keys: {}", def.forbidden_keys.join(", "));
     }
     if sections.is_empty() {
         println!("  sections: (none)");

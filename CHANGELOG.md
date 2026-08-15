@@ -30,7 +30,7 @@ GitHub Releases use GitHub’s auto-generated notes. Edit this file by hand when
 - **`ods schema keys`:** inspect registered schema key definitions, placements (`TopLevel`, `NestedEngineMap`), key types, and descriptions in text or JSON. Bare `ods schema` still exports JSON Schema.
 - **`ods overview` (alias: `ods summary`):** compact workspace snapshot (document counts, profile/status breakdown, top tags, custom keys, graph statistics) for AI cold-start. Use `ods stats` for lint health %.
 - **`ods context` filter fallback:** when the positional id is omitted, `--tag` / `--key` / `--status` may resolve a target **only if the match is unique**; multi-match fails with a short id list and `Next: ods find …`. Classic `ods context <id>` is unchanged.
-- **`ods profile init --register` (default):** scaffolds `.ods/profiles/<name>.md` and appends it under root `custom-profiles:` (use `--no-register` to skip). **`ods profile show <name>`** prints layer, sections, expected keys.
+- **`ods profile init --register` (default):** scaffolds `.ods/profiles/<name>.md` and appends it under root `custom-profiles:` (use `--no-register` to skip). **`ods profile show <name>`** prints layer, sections, and required/optional/forbidden keys.
 - **`ods status <path-or-id> <draft|stable|deprecated|archived>`** lifecycle setter; **`ods archive`** remains an alias for `status … archived`.
 - **`ods aliases` / `ods alias add <Canonical> <Synonym>`** for workspace section-heading aliases in root `ods.toml` `[aliases]` (legacy root index still accepted).
 - **`ods context --explain`** / **`--include-related`**; hybrid **`--okf`** merges OKF link neighborhood after ODS depends/load; respects root `specs.okf.enabled`.
