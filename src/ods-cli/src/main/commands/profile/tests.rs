@@ -17,7 +17,12 @@ mod test_profile_commands {
         ]);
         assert!(res.is_ok());
 
-        let res = run_profile_show_command(&["ods".into(), "profile".into(), "show".into(), "note".into()]);
+        let res = run_profile_show_command(&[
+            "ods".into(),
+            "profile".into(),
+            "show".into(),
+            "note".into(),
+        ]);
         assert!(res.is_ok());
 
         let res = run_profile_show_command(&[
@@ -30,11 +35,18 @@ mod test_profile_commands {
         ]);
         assert!(res.is_ok());
 
-        let err = run_profile_show_command(&["ods".into(), "profile".into(), "show".into()]).unwrap_err();
+        let err =
+            run_profile_show_command(&["ods".into(), "profile".into(), "show".into()]).unwrap_err();
         assert!(err.message().contains("name"));
 
-        let err = run_profile_show_command(&["ods".into(), "profile".into(), "show".into(), "nonexistent_xyz".into()]).unwrap_err();
-    assert!(err.message().contains("profile not found"));
+        let err = run_profile_show_command(&[
+            "ods".into(),
+            "profile".into(),
+            "show".into(),
+            "nonexistent_xyz".into(),
+        ])
+        .unwrap_err();
+        assert!(err.message().contains("profile not found"));
     }
 
     #[test]
@@ -42,7 +54,8 @@ mod test_profile_commands {
         let td = tempdir().unwrap();
         let root = td.path();
 
-        let err = run_profile_init_command(&["ods".into(), "profile".into(), "init".into()]).unwrap_err();
+        let err =
+            run_profile_init_command(&["ods".into(), "profile".into(), "init".into()]).unwrap_err();
         assert!(err.message().contains("name"));
 
         let res = run_profile_init_command(&[
@@ -59,8 +72,8 @@ mod test_profile_commands {
         let profile_text = fs::read_to_string(&profile_file).unwrap();
         assert!(profile_text.contains("custom_profile:"));
         assert!(profile_text.contains("required_keys:"));
-        assert!(profile_text.contains("optional_keys:"));
-        assert!(profile_text.contains("forbidden_keys:"));
+        assert!(!profile_text.contains("optional_keys:"));
+        assert!(!profile_text.contains("forbidden_keys:"));
 
         // duplicate init
         let res = run_profile_init_command(&[
@@ -82,12 +95,22 @@ mod test_profile_commands {
         let res = run_aliases_command(&["ods".into(), "alias".into(), "--help".into()]);
         assert!(res.is_ok());
 
-        let err = run_aliases_command(&["ods".into(), "alias".into(), "add".into(), "Overview".into()]).unwrap_err();
+        let err = run_aliases_command(&[
+            "ods".into(),
+            "alias".into(),
+            "add".into(),
+            "Overview".into(),
+        ])
+        .unwrap_err();
         assert!(err.message().contains("Synonym"));
 
         // create index.ods.md and add alias
         let index_path = root.join("index.ods.md");
-        fs::write(&index_path, "---\nprofile: index\nods: 0.1\n---\n\n# Root\n").unwrap();
+        fs::write(
+            &index_path,
+            "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
+        )
+        .unwrap();
 
         // list
         let res = run_aliases_command(&[
@@ -134,7 +157,11 @@ mod test_profile_commands {
         assert_eq!(out, text_with_aliases);
 
         let text_with_different_canonical = "---\naliases:\n  Architecture:\n    - Design\n---\n";
-        let out = insert_section_alias_into_root_index(text_with_different_canonical, "Overview", "Summary");
+        let out = insert_section_alias_into_root_index(
+            text_with_different_canonical,
+            "Overview",
+            "Summary",
+        );
         assert!(out.contains("Overview:"));
         assert!(out.contains("Summary"));
     }

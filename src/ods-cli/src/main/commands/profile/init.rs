@@ -48,8 +48,6 @@ ods:
     name: {profile_name}
     required_keys:
       - owner
-    optional_keys: []
-    forbidden_keys: []
 ---
 
 # {profile_name} Profile
@@ -67,6 +65,9 @@ ods:
         println!(
             "scaffolded custom profile definition at {}",
             file_path.display()
+        );
+        println!(
+            "Optional: add optional_keys or forbidden_keys to the file when needed; use one '- key' entry per key."
         );
         true
     };
