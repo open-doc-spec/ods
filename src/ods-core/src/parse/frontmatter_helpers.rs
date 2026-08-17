@@ -288,12 +288,12 @@ pub fn mark_non_null_key(
 }
 
 pub fn parse_heading_group(heading: &str) -> Vec<String> {
-    heading
-        .split('|')
-        .map(str::trim)
-        .filter(|item| !item.is_empty())
-        .map(unquote)
-        .collect()
+    let trimmed = heading.trim();
+    if trimmed.is_empty() {
+        Vec::new()
+    } else {
+        vec![unquote(trimmed)]
+    }
 }
 
 pub fn parse_spec_lint_config(

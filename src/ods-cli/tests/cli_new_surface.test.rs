@@ -248,21 +248,24 @@ fn profile_fmt_disable_doctor_and_flag_matrix() {
     let body = fs::read_to_string(&doc).unwrap();
     assert!(body.contains("status: archived"), "{body}");
 
-    // section aliases list + add
+    // aliases command fails as unknown command (exit code 2)
     let out = ods().current_dir(&dir).args(["aliases"]).output().unwrap();
-    assert!(out.status.success(), "aliases list: {:?}", out);
+    assert_eq!(
+        out.status.code(),
+        Some(2),
+        "aliases should be unknown: {:?}",
+        out
+    );
     let out = ods()
         .current_dir(&dir)
         .args(["alias", "add", "Goal", "Objective"])
         .output()
         .unwrap();
-    assert!(out.status.success(), "alias add: {:?}", out);
-    let index_text = fs::read_to_string(dir.join("ods.toml"))
-        .unwrap_or_else(|_| fs::read_to_string(dir.join("ods.toml")).expect("root index"));
-    assert!(
-        (index_text.contains("aliases") || index_text.contains("[aliases]"))
-            && index_text.contains("Objective"),
-        "{index_text}"
+    assert_eq!(
+        out.status.code(),
+        Some(2),
+        "alias add should be unknown: {:?}",
+        out
     );
 
     // fmt migrate + refs + json

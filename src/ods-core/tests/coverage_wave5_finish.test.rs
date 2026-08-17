@@ -273,7 +273,6 @@ fn schema_json_is_valid_and_lists_root_keys() {
         "ods",
         "packs",
         "ignore",
-        "aliases",
         "specs",
     ] {
         assert!(props.get(key).is_some(), "missing {key} in {raw}");

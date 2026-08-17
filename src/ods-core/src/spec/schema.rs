@@ -389,13 +389,6 @@ impl SpecSchemaRegistry {
                 "Ignore path prefixes",
             ),
             KeyDefinition::new(
-                "aliases",
-                KeyPlacement::WorkspaceConfigOnly,
-                KeyType::Map,
-                false,
-                "Vocabulary section aliases",
-            ),
-            KeyDefinition::new(
                 "specs",
                 KeyPlacement::WorkspaceConfigOnly,
                 KeyType::Map,
@@ -824,7 +817,6 @@ pub fn generate_ods_json_schema() -> String {
             "profiles": top_props.get("profiles").cloned().unwrap_or(json!({"type":"array"})),
             "packs": top_props.get("packs").cloned().unwrap_or(json!({"type":"array"})),
             "ignore": top_props.get("ignore").cloned().unwrap_or(json!({"type":"array"})),
-            "aliases": top_props.get("aliases").cloned().unwrap_or(json!({"type":"object"})),
             "specs": top_props.get("specs").cloned().unwrap_or(json!({"type":"object"}))
         },
         "additionalProperties": true

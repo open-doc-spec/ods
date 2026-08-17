@@ -21,10 +21,10 @@ fn document_id_path_and_explicit() {
 
 #[test]
 fn extract_headings_and_groups() {
-    let body = "# T\n\n## Goal | Objective\n\n## Scope\n";
+    let body = "# T\n\n## Goal\n\n## Scope\n";
     assert_eq!(extract_headings(body), vec!["Goal", "Scope"]);
     let groups = extract_heading_groups(body);
-    assert_eq!(groups[0], vec!["Goal", "Objective"]);
+    assert_eq!(groups[0], vec!["Goal"]);
 }
 
 #[test]

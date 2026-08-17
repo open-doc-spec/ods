@@ -31,7 +31,7 @@ pub struct DisableOptions {
     pub write: bool,
     /// Strip ODS frontmatter keys from documents (default true).
     pub strip_frontmatter: bool,
-    /// Strip root policy keys ods/profiles/ignore/aliases (default true).
+    /// Strip root policy keys spec/custom_profiles/ignore/packs (default true).
     pub strip_root_policy: bool,
     /// Delete non-root legacy index.md files (default false).
     pub remove_indexes: bool,

@@ -31,8 +31,6 @@ fn run_adopt_command(args: &[String]) -> Result<ExitCode, CliError> {
     let diagnostics = lint_workspace_with_level(&workspace, level);
     print_diagnostics(&diagnostics, format);
     println!("profiles: {}", known_profiles(&workspace).join(", "));
-    print_aliases(&workspace);
-    print_alias_suggestions(&workspace);
     if write {
         println!("adopt wrote {} document(s)", report.written.len());
         for path in &report.written {

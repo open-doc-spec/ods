@@ -49,35 +49,6 @@ fn print_path_change_report(
     }
 }
 
-fn print_aliases(workspace: &ods_core::Workspace) {
-    let aliases = workspace_aliases(workspace);
-    if aliases.is_empty() {
-        return;
-    }
-
-    println!("workspace aliases:");
-    for (canonical, values) in aliases {
-        println!(
-            "  {canonical}: {}",
-            values.into_iter().collect::<Vec<_>>().join(", ")
-        );
-    }
-}
-
-fn print_alias_suggestions(workspace: &ods_core::Workspace) {
-    let suggestions = workspace_alias_suggestions(workspace);
-    if suggestions.is_empty() {
-        return;
-    }
-
-    println!("alias suggestions:");
-    for (canonical, values) in suggestions {
-        println!(
-            "  {canonical}: {}",
-            values.into_iter().collect::<Vec<_>>().join(", ")
-        );
-    }
-}
 fn print_tags(workspace: &ods_core::Workspace, include_all: bool, format: OutputFormat) {
     let rows = tag_usage_with_builtins(workspace, include_all);
     match format {
@@ -146,13 +117,6 @@ mod tests_process_memory {
             OutputFormat::Json,
             "renamed",
         );
-    }
-
-    #[test]
-    fn test_print_aliases_and_suggestions() {
-        let ws = ods_core::Workspace::empty(PathBuf::from("/ws"));
-        print_aliases(&ws);
-        print_alias_suggestions(&ws);
     }
 
     #[test]

@@ -3,7 +3,6 @@
 use crate::model::{SpecLintConfig, WorkspaceSpecsConfig, current_ods_spec_version};
 use crate::parse::split_frontmatter;
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
@@ -92,8 +91,6 @@ pub struct WorkspaceConfig {
     #[serde(default)]
     pub packs: Vec<String>,
     #[serde(default)]
-    pub aliases: BTreeMap<String, Vec<String>>,
-    #[serde(default)]
     pub specs: SpecsToml,
     #[serde(default)]
     pub service: ServiceConfig,
@@ -106,7 +103,6 @@ impl Default for WorkspaceConfig {
             ignore: Vec::new(),
             custom_profiles: Vec::new(),
             packs: Vec::new(),
-            aliases: BTreeMap::new(),
             specs: SpecsToml::default(),
             service: ServiceConfig::default(),
         }
@@ -169,19 +165,6 @@ pub fn render_ods_toml(config: &WorkspaceConfig) -> String {
             out.push_str(&format!("  \"{}\",\n", escape_toml_str(p)));
         }
         out.push_str("]\n");
-    }
-    if !config.aliases.is_empty() {
-        out.push_str("\n[aliases]\n");
-        for (k, vals) in &config.aliases {
-            out.push_str(&format!("{k} = ["));
-            for (i, v) in vals.iter().enumerate() {
-                if i > 0 {
-                    out.push_str(", ");
-                }
-                out.push_str(&format!("\"{}\"", escape_toml_str(v)));
-            }
-            out.push_str("]\n");
-        }
     }
     if config.specs.okf.enabled || config.specs.skills.enabled {
         if config.specs.okf.enabled {
@@ -293,7 +276,6 @@ fn load_legacy_root_index_config(root: &Path) -> Option<WorkspaceConfig> {
                 ignore: fm.ignore,
                 custom_profiles: fm.profiles,
                 packs: fm.packs,
-                aliases: fm.aliases,
                 specs: SpecsToml {
                     okf: SpecEngineToml {
                         enabled: fm.specs.okf.enabled,
