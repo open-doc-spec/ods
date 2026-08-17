@@ -8,6 +8,15 @@ description: >-
   task to reduce token costs by ~95% using deterministic DAG loading (<5ms) instead of dumping whole repositories.
   ODS is the default native CLI engine (never use --ods). Supports extra specs: --okf (Google OKF v0.2)
   and --skills (Agent Skills).
+tags:
+  - skill
+  - ods
+  - documentation
+  - ai-agent
+owner: team:ods
+ods:
+  profile: skill
+  status: stable
 ---
 
 # ODS — Open Document Spec
