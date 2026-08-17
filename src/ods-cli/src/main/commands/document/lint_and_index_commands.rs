@@ -4,7 +4,6 @@ fn run_lint_command(args: &[String]) -> Result<ExitCode, CliError> {
             "ods lint [path] [flags]\n\n\
              Validate the ODS document graph (and optionally OKF/Skills).\n\n\
              Flags:\n\
-               --level 1|3 | --mode standard|strict   Lint strictness (default 3/strict)\n\
                --format text|json|sarif\n\
                --fix                              No-op for ODS (nested indexes removed; use overview/find/tree)\n\
                --canonical-refs                     Warn on extensionless document refs\n\

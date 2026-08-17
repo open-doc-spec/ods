@@ -104,13 +104,9 @@ mod test_profile_commands {
         .unwrap_err();
         assert!(err.message().contains("Synonym"));
 
-        // create index.ods.md and add alias
-        let index_path = root.join("index.ods.md");
-        fs::write(
-            &index_path,
-            "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
-        )
-        .unwrap();
+        // create ods.toml and add alias
+        let toml_path = root.join("ods.toml");
+        fs::write(&toml_path, "spec = \"0.1\"\n").unwrap();
 
         // list
         let res = run_aliases_command(&[
@@ -131,7 +127,7 @@ mod test_profile_commands {
         ]);
         assert!(res.is_ok());
 
-        let content = fs::read_to_string(&index_path).unwrap();
+        let content = fs::read_to_string(&toml_path).unwrap();
         assert!(content.contains("Overview"));
         assert!(content.contains("Summary"));
 
@@ -142,28 +138,6 @@ mod test_profile_commands {
             root.to_str().unwrap().into(),
         ]);
         assert!(res.is_ok());
-    }
-
-    #[test]
-    fn test_insert_section_alias_into_root_index_pure_helper() {
-        let text_no_aliases = "---\nprofile: index\n---\n";
-        let out = insert_section_alias_into_root_index(text_no_aliases, "Overview", "Summary");
-        assert!(out.contains("aliases:"));
-        assert!(out.contains("Overview:"));
-        assert!(out.contains("Summary"));
-
-        let text_with_aliases = "---\naliases:\n  Overview:\n    - Summary\n---\n";
-        let out = insert_section_alias_into_root_index(text_with_aliases, "Overview", "Summary");
-        assert_eq!(out, text_with_aliases);
-
-        let text_with_different_canonical = "---\naliases:\n  Architecture:\n    - Design\n---\n";
-        let out = insert_section_alias_into_root_index(
-            text_with_different_canonical,
-            "Overview",
-            "Summary",
-        );
-        assert!(out.contains("Overview:"));
-        assert!(out.contains("Summary"));
     }
 
     #[test]

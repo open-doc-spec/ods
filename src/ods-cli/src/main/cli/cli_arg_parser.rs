@@ -225,8 +225,6 @@ fn parse_common_flags(
     args: &[String],
     start: usize,
 ) -> Result<(PathBuf, LintLevel, OutputFormat), CliError> {
-    // ODS compliance is binary; LintLevel is always Full. --level/--mode ignored if present
-    // for one-release CLI compatibility (values are discarded).
     let level = LintLevel::Full;
     let mut format = OutputFormat::Text;
     let mut path = None;
@@ -234,11 +232,6 @@ fn parse_common_flags(
     let mut i = start;
     while i < args.len() {
         match args[i].as_str() {
-            "--mode" | "--level" => {
-                // Accept and skip legacy flags; full integrity always runs.
-                let _ = args.get(i + 1);
-                i += 2;
-            }
             "--format" => {
                 let value = args
                     .get(i + 1)
@@ -389,8 +382,7 @@ fn positional_args(args: &[String], start: usize) -> Vec<String> {
     let mut i = start;
     while i < args.len() {
         match args[i].as_str() {
-            "--level"
-            | "--format"
+            "--format"
             | "--version"
             | "--root"
             | "--refs"
@@ -548,16 +540,23 @@ mod test_cli_arg_parser {
     }
 
     #[test]
-    fn parse_common_flags_level_and_format() {
+    fn parse_common_flags_format_and_rejection_of_legacy_level() {
         let args = vec![
+            "ods".into(),
+            "lint".into(),
+            ".".into(),
+            "--format".into(),
+            "json".into(),
+        ];
+        assert!(parse_common_flags(&args, 2).is_ok());
+
+        let legacy_args = vec![
             "ods".into(),
             "lint".into(),
             ".".into(),
             "--level".into(),
             "1".into(),
-            "--format".into(),
-            "json".into(),
         ];
-        assert!(parse_common_flags(&args, 2).is_ok());
+        assert!(parse_common_flags(&legacy_args, 2).is_err());
     }
 }

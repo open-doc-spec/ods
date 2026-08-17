@@ -27,7 +27,7 @@ Commands:
   profile init <name>      Scaffold custom profile (registers under custom_profiles in ods.toml)
   profile show <name>      Show profile source, sections, and key policies
   aliases [path]           List workspace section-heading aliases
-  alias add <Can> <Syn>    Add a section alias (ods.toml [aliases]; legacy root index ok)
+  alias add <Can> <Syn>    Add a section alias to root ods.toml [aliases]
   tags [path]              List root-level project tags (observed) with use counts
   tags --all [path]        Include unused default ODS tags
   tag list [path]          List observed workspace tags with document counts
@@ -83,7 +83,6 @@ Also: `ods lsp` — JSON-RPC Language Server for editors (stdio; not the same as
 
 Flags:
   --version, -V            Print version and exit
-  --level 1|3              Lint strictness (default 3)
   --format text|json       Output format for supported commands (default text)
   --okf                    Extra-spec: OKF v0.2
   --skills                 Extra-spec: Agent Skills

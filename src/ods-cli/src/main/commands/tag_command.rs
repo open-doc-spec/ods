@@ -115,7 +115,6 @@ fn run_tag_command(args: &[String]) -> Result<ExitCode, CliError> {
                         };
                         i += 2;
                     }
-                    "--level" => i += 2,
                     flag if flag.starts_with('-') => {
                         return Err(usage_msg(ods_core::unknown_flag(flag, "ods help")));
                     }

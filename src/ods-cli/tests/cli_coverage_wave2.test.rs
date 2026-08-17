@@ -277,14 +277,14 @@ fn lint_index_fmt_with_formats_and_levels() {
 
     for fmt in ["text", "json", "sarif"] {
         let out = ods()
-            .args(["lint", root, "--format", fmt, "--level", "3"])
+            .args(["lint", root, "--format", fmt])
             .output()
             .unwrap();
         let _ = out.status;
     }
 
     let out = ods().args(["lint", root, "--level", "1"]).output().unwrap();
-    let _ = out.status;
+    assert!(!out.status.success());
 
     let out = ods().args(["lint", root, "--check"]).output().unwrap();
     let _ = out.status;
