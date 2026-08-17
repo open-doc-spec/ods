@@ -14,7 +14,7 @@ ODS uses a two-tiered **Standard (Built-in) vs. Workspace (Custom)** layering mo
 | Layer | Source | Enforcement |
 | :--- | :--- | :--- |
 | **Standard Profiles** | Built into the specification / `ods` binary (13 core profiles) | Always available; section lint for known shapes |
-| **Custom Profiles** | Explicitly declared under `custom_profiles` in root `ods.toml`, or imported **ODS Packs** (`packs:`) | Additive catalogs; unknown name → warning (falls back to **Default Profile (`note`)**) |
+| **Custom Profiles** | Explicitly declared under `custom_profiles` in root `ods.toml`, or imported **ODS Packs** (`packs:`) | Additive catalogs; unknown name → error (no fallback to **Default Profile (`note`)**) |
 
 Prefer **Standard Profiles** first (`agent`, `feature`, `guide`, `api`, `architecture`, `decision`, `sop`, `policy`, `meeting`, `faq`, `checklist`, `index`, `note`). Introduce a **Custom Profile** or **ODS Pack** only when a repeated document class is worth standardizing across teams.
 

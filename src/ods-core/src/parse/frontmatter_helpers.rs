@@ -1,5 +1,3 @@
-
-
 pub fn parse_nested_ods_map(
     lines: &[&str],
     start: usize,
@@ -87,6 +85,12 @@ pub fn parse_nested_ods_map(
                 frontmatter.context = Some(context);
                 index = next;
             }
+            "custom_profile" => {
+                let (definition, next) =
+                    parse_custom_profile_definition(lines, index + 1, item_indent)?;
+                frontmatter.custom_profile = Some(definition);
+                index = next;
+            }
             // Nested tags under ods: are invalid placement (universal keys are root-only).
             // Still parse values into the model so tools can surface them until migrate hoists
             // them to top-level; callers set tags_misplaced on the parent Frontmatter.
@@ -109,6 +113,141 @@ pub fn parse_nested_ods_map(
     }
 
     Ok((frontmatter, index))
+}
+
+pub fn parse_custom_profile_definition(
+    lines: &[&str],
+    start: usize,
+    min_indent: usize,
+) -> Result<(crate::model::CustomProfileDefinition, usize), String> {
+    let mut index = start;
+    let mut definition = crate::model::CustomProfileDefinition::default();
+
+    while let Some(raw_line) = lines.get(index) {
+        if raw_line.trim().is_empty() {
+            index += 1;
+            continue;
+        }
+        if indent(raw_line) < min_indent {
+            break;
+        }
+
+        let trimmed = raw_line.trim_start();
+        let Some((key, rest)) = trimmed.split_once(':') else {
+            break;
+        };
+        let key = key.trim();
+        let rest = rest.trim();
+        let item_indent = min_indent + 2;
+
+        match key {
+            "name" => {
+                definition.name = scalar_value(rest);
+                index += 1;
+            }
+            "required_keys" => {
+                let (items, next) =
+                    parse_profile_key_list(lines, index + 1, item_indent, rest, "required_keys")?;
+                definition.required_keys.extend(items);
+                index = next;
+            }
+            "optional_keys" => {
+                let (items, next) =
+                    parse_profile_key_list(lines, index + 1, item_indent, rest, "optional_keys")?;
+                definition.optional_keys.extend(items);
+                index = next;
+            }
+            "forbidden_keys" => {
+                let (items, next) =
+                    parse_profile_key_list(lines, index + 1, item_indent, rest, "forbidden_keys")?;
+                definition.forbidden_keys.extend(items);
+                index = next;
+            }
+            _ => {
+                let (_, next) = parse_passthrough_block(lines, index + 1, item_indent);
+                index = next;
+            }
+        }
+    }
+
+    Ok((definition, index))
+}
+
+fn parse_profile_key_list(
+    lines: &[&str],
+    start: usize,
+    min_indent: usize,
+    inline: &str,
+    key_name: &str,
+) -> Result<(Vec<String>, usize), String> {
+    let inline = inline.trim();
+    if !inline.is_empty() {
+        if is_null_literal(inline) || !(inline.starts_with('[') && inline.ends_with(']')) {
+            return Err(format!(
+                "custom_profile.{key_name} must be a list of strings"
+            ));
+        }
+
+        let inner = inline[1..inline.len() - 1].trim();
+        if inner.is_empty() {
+            return Ok((Vec::new(), start));
+        }
+
+        let mut values = Vec::new();
+        for raw in inner.split(',') {
+            let raw = raw.trim();
+            if raw.is_empty() || is_null_literal(raw) {
+                return Err(format!(
+                    "custom_profile.{key_name} must contain only non-null strings"
+                ));
+            }
+            values.push(unquote(raw));
+        }
+        return Ok((values, start));
+    }
+
+    let mut index = start;
+    let mut values = Vec::new();
+    let mut saw_item = false;
+    while let Some(raw_line) = lines.get(index) {
+        if raw_line.trim().is_empty() {
+            index += 1;
+            continue;
+        }
+        if indent(raw_line) < min_indent {
+            break;
+        }
+
+        let trimmed = raw_line.trim_start();
+        let Some(item) = trimmed.strip_prefix("- ") else {
+            return Err(format!(
+                "custom_profile.{key_name} must be a list of strings"
+            ));
+        };
+        let item = item.trim();
+        if item.is_empty() || is_null_literal(item) {
+            return Err(format!(
+                "custom_profile.{key_name} must contain only non-null strings"
+            ));
+        }
+        values.push(unquote(item));
+        saw_item = true;
+        index += 1;
+    }
+
+    if !saw_item {
+        return Err(format!(
+            "custom_profile.{key_name} must be a list of strings"
+        ));
+    }
+    Ok((values, index))
+}
+
+fn is_null_literal(value: &str) -> bool {
+    let value = value.trim();
+    (value == "~" || value.eq_ignore_ascii_case("null"))
+        && !((value.starts_with('"') && value.ends_with('"'))
+            || (value.starts_with('\'') && value.ends_with('\'')))
 }
 
 pub fn scalar_value(text: &str) -> Option<String> {

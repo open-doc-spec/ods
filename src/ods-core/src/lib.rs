@@ -88,10 +88,10 @@ pub use lint::{
     workspace_alias_suggestions, workspace_aliases, workspace_compliance,
 };
 pub use model::{
-    CodeRef, CodeRole, ComplianceMode, CustomValue, Diagnostic, Document, Frontmatter,
-    FrontmatterState, LintLevel, LoadOptions, ProfileCatalog, ProfileConflict, ProfileDefinition,
-    ResourceRef, Severity, SpecLintConfig, Workspace, WorkspaceCompliance, WorkspaceSpecsConfig,
-    current_ods_spec_version, current_ods_version,
+    CodeRef, CodeRole, ComplianceMode, CustomProfileDefinition, CustomValue, Diagnostic, Document,
+    Frontmatter, FrontmatterState, LintLevel, LoadOptions, ProfileCatalog, ProfileConflict,
+    ProfileDefinition, ResourceRef, Severity, SpecLintConfig, Workspace, WorkspaceCompliance,
+    WorkspaceSpecsConfig, current_ods_spec_version, current_ods_version,
 };
 pub use mv::{
     PathChange, PathChangeReport, apply_path_changes, canonicalize_workspace_document_refs,

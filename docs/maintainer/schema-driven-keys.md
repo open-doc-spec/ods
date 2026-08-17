@@ -9,7 +9,7 @@
 | `ods` | default (no flag) | `specs/ods/keys.md` |
 | `okf` | `--okf` | `specs/okf/keys.md` |
 | `skills` | `--skills` | `specs/skills/keys.md` |
-| custom profiles | `expected_keys` on profile defs | `specs/ods/profiles.md` |
+| custom profiles | `ods.custom_profile.required_keys` on profile definitions | `specs/ods/profiles.md` |
 
 ## What is schema-driven today
 

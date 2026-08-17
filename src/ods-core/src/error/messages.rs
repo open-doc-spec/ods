@@ -477,6 +477,17 @@ pub fn lint_unknown_profile(profile: &str) -> String {
     format!("unknown profile: {profile}")
 }
 
+pub fn lint_unknown_profile_with_sources(profile: &str, configured_paths: &[String]) -> String {
+    let paths = if configured_paths.is_empty() {
+        "(none)".to_string()
+    } else {
+        configured_paths.join(", ")
+    };
+    format!(
+        "profile not found: {profile} (custom profile definitions are loaded only from paths declared by custom_profiles in ods.toml: {paths})"
+    )
+}
+
 pub fn lint_missing_expected_section(section: &str) -> String {
     format!("missing expected section: {section}")
 }
@@ -720,8 +731,12 @@ pub fn lint_invalid_date(field: &str, value: &str) -> String {
     format!("invalid {field} date format: '{value}' (expected YYYY-MM-DD or ISO-8601)")
 }
 
-pub fn lint_missing_expected_key(key: &str, profile: &str) -> String {
-    format!("missing expected key '{key}' for profile '{profile}'")
+pub fn lint_missing_required_key(key: &str, profile: &str) -> String {
+    format!("missing required key '{key}' for profile '{profile}'")
+}
+
+pub fn lint_forbidden_profile_key(key: &str, profile: &str) -> String {
+    format!("forbidden key '{key}' is present for profile '{profile}'")
 }
 
 pub fn lint_duplicate_tag(tag: &str) -> String {
@@ -1074,7 +1089,8 @@ mod tests {
             lint_missing_context_resource("c"),
             lint_context_ignore_not_found("i"),
             lint_invalid_date("created", "nope"),
-            lint_missing_expected_key("k", "note"),
+            lint_missing_required_key("k", "note"),
+            lint_forbidden_profile_key("k", "note"),
             lint_duplicate_tag("t"),
             lint_tag_has_spaces("a b", "a-b"),
             lint_tag_collides_status("draft"),

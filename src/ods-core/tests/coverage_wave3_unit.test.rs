@@ -477,6 +477,7 @@ fn canonical_lint_nested_ods_and_root_keys() {
         "---\nprofile: index\nods: 0.1\ncustom-profiles:\n  - x.md\nignore:\n  - tmp\n---\n\n# R\n",
     )
     .unwrap();
+    fs::write(root.join("x.md"), "# X Profile\n").unwrap();
     fs::create_dir_all(root.join("tmp")).unwrap();
     fs::write(root.join("tmp/hidden.md"), "# h\n").unwrap();
     fs::create_dir_all(root.join("sub")).unwrap();

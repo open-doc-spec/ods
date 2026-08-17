@@ -2,7 +2,10 @@ use crate::config::{WorkspaceConfig, load_workspace_config, ods_toml_enabled};
 use crate::model::{Document, LoadOptions, Workspace};
 use crate::parse::document_id;
 use crate::pipeline::{discover_markdown_paths, parse_paths_parallel};
-use crate::profiles::{load_profile_catalog, profile_catalog_roots_from_config};
+use crate::profiles::{
+    load_profile_catalog, profile_catalog_roots_from_config, validate_custom_profile_paths,
+    validate_custom_profile_placements,
+};
 use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::io;
@@ -47,7 +50,12 @@ pub fn load_workspace_with_options(
         .canonicalize()
         .unwrap_or_else(|_| root.as_ref().to_path_buf());
 
-    let config = load_workspace_config(&root).unwrap_or_else(|_| WorkspaceConfig::default());
+    let config = match load_workspace_config(&root) {
+        Ok(config) => config,
+        Err(err) if err.kind() == io::ErrorKind::NotFound => WorkspaceConfig::default(),
+        Err(err) => return Err(err),
+    };
+    validate_custom_profile_paths(&root, &config)?;
     let gitignore = if options.respect_gitignore {
         load_gitignore_patterns(&root)
     } else {
@@ -59,14 +67,10 @@ pub fn load_workspace_with_options(
     let mut workspace_ignore = config.ignore.clone();
     workspace_ignore.extend(load_odsignore_patterns(&root));
 
-    let paths = discover_markdown_paths(
-        &root,
-        &profile_roots,
-        &gitignore,
-        &workspace_ignore,
-    )?;
+    let paths = discover_markdown_paths(&root, &profile_roots, &gitignore, &workspace_ignore)?;
 
     let documents = parse_paths_parallel(&root, &paths, options.include_body)?;
+    validate_custom_profile_placements(&root, &documents, &profile_roots, &config)?;
 
     let mut workspace = Workspace {
         root,

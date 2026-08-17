@@ -101,7 +101,7 @@ fn stale_root_ods_version_errors() {
 }
 
 #[test]
-fn unknown_profile_warns() {
+fn unknown_profile_is_an_error() {
     let dir = temp_workspace();
     write_root(&dir, "- [a.md](a.md)\n");
     fs::write(
@@ -114,12 +114,62 @@ fn unknown_profile_warns() {
     assert!(
         diags
             .iter()
-            .any(|d| { d.severity == Severity::Warning && d.message.contains("unknown profile") })
+            .any(|d| { d.severity == Severity::Error && d.message.contains("profile not found") })
     );
 }
 
 #[test]
-fn expected_keys_match_top_level_custom_frontmatter_values() {
+fn missing_custom_profile_path_is_a_load_error() {
+    let dir = temp_workspace();
+    fs::write(
+        dir.join("ods.toml"),
+        "spec = \"0.1\"\ncustom_profiles = [\"docs/profiles/incident.md\"]\n",
+    )
+    .unwrap();
+
+    let error = load_workspace(&dir).expect_err("missing configured profile path must fail");
+    let message = error.to_string();
+    assert!(
+        message.contains("custom profile path not found"),
+        "{message}"
+    );
+    let expected_path = format!(
+        "docs{separator}profiles{separator}incident.md",
+        separator = std::path::MAIN_SEPARATOR
+    );
+    assert!(message.contains(&expected_path), "{message}");
+    assert!(message.contains("custom_profiles"), "{message}");
+}
+
+#[test]
+fn custom_profile_metadata_outside_registered_path_is_a_load_error() {
+    let dir = temp_workspace();
+    fs::create_dir_all(dir.join("docs/profiles")).unwrap();
+    fs::write(
+        dir.join("ods.toml"),
+        "spec = \"0.1\"\ncustom_profiles = [\"docs/profiles/incident.md\"]\n",
+    )
+    .unwrap();
+    fs::write(
+        dir.join("docs/profiles/incident.md"),
+        "---\nods:\n  custom_profile:\n    name: incident\n---\n\n# Incident\n",
+    )
+    .unwrap();
+    fs::write(
+        dir.join("ordinary.md"),
+        "---\nods:\n  custom_profile:\n    name: wrong-place\n---\n\n# Ordinary\n",
+    )
+    .unwrap();
+
+    let error = load_workspace(&dir).expect_err("unregistered profile metadata must fail");
+    let message = error.to_string();
+    assert!(message.contains("invalid ods.custom_profile"), "{message}");
+    assert!(message.contains("ordinary.md"), "{message}");
+    assert!(message.contains("docs/profiles/incident.md"), "{message}");
+}
+
+#[test]
+fn required_keys_match_top_level_custom_frontmatter_values() {
     let dir = temp_workspace();
     fs::create_dir_all(dir.join("ods-profiles")).unwrap();
     fs::write(
@@ -129,7 +179,7 @@ fn expected_keys_match_top_level_custom_frontmatter_values() {
     .unwrap();
     fs::write(
         dir.join("ods-profiles/incident.md"),
-        "---\nname: incident\nexpected_keys:\n  - GitHub-Issue\n  - service\n---\n\n# Incident\n",
+        "---\nods:\n  custom_profile:\n    name: incident\n    required_keys:\n      - GitHub-Issue\n      - service\n    optional_keys:\n      - owner\n    forbidden_keys:\n      - title\n---\n\n# Incident\n",
     )
     .unwrap();
     fs::write(
@@ -152,12 +202,22 @@ fn expected_keys_match_top_level_custom_frontmatter_values() {
         "---\nprofile: incident\ngithub-issue: \"null\"\nservice: checkout\n---\n\n# Quoted\n",
     )
     .unwrap();
+    fs::write(
+        dir.join("forbidden.md"),
+        "---\nprofile: incident\ntitle: Legacy title\ngithub-issue: 456\nservice: checkout\n---\n\n# Forbidden\n",
+    )
+    .unwrap();
+    fs::write(
+        dir.join("forbidden-null.md"),
+        "---\nprofile: incident\ntitle: null\ngithub-issue: 456\nservice: checkout\n---\n\n# Forbidden Null\n",
+    )
+    .unwrap();
 
     let workspace = load_workspace(&dir).unwrap();
     let diagnostics = lint_workspace(&workspace);
     let missing = diagnostics
         .iter()
-        .filter(|diagnostic| diagnostic.message.contains("missing expected key"))
+        .filter(|diagnostic| diagnostic.message.contains("missing required key"))
         .collect::<Vec<_>>();
 
     assert_eq!(missing.len(), 2, "{diagnostics:#?}");
@@ -181,10 +241,51 @@ fn expected_keys_match_top_level_custom_frontmatter_values() {
             .iter()
             .any(|diagnostic| diagnostic.path.ends_with("quoted.md"))
     );
+    assert!(
+        diagnostics
+            .iter()
+            .any(|diagnostic| diagnostic.path.ends_with("forbidden.md")
+                && diagnostic.message.contains("forbidden key 'title'")),
+        "{diagnostics:#?}"
+    );
+    assert!(
+        diagnostics
+            .iter()
+            .any(|diagnostic| diagnostic.path.ends_with("forbidden-null.md")
+                && diagnostic.message.contains("forbidden key 'title'")),
+        "{diagnostics:#?}"
+    );
 }
 
 #[test]
-fn expected_keys_treat_empty_known_lists_as_non_null() {
+fn invalid_custom_profile_key_policy_is_a_load_error() {
+    let dir = temp_workspace();
+    fs::create_dir_all(dir.join("ods-profiles")).unwrap();
+    fs::write(
+        dir.join("ods.toml"),
+        "spec = \"0.1\"\ncustom_profiles = [\"ods-profiles\"]\n",
+    )
+    .unwrap();
+    fs::write(
+        dir.join("ods-profiles/invalid.md"),
+        "---\nods:\n  custom_profile:\n    name: invalid\n    required_keys: null\n---\n\n# Invalid\n",
+    )
+    .unwrap();
+
+    let error = load_workspace(&dir).expect_err("invalid profile key list must fail");
+    let message = error.to_string();
+    assert!(
+        message.contains("invalid custom profile definition"),
+        "{message}"
+    );
+    assert!(
+        message.contains("required_keys must be a list"),
+        "{message}"
+    );
+}
+
+#[test]
+fn required_keys_treat_empty_known_lists_as_non_null() {
     let dir = temp_workspace();
     fs::create_dir_all(dir.join("ods-profiles")).unwrap();
     fs::write(
@@ -194,7 +295,7 @@ fn expected_keys_treat_empty_known_lists_as_non_null() {
     .unwrap();
     fs::write(
         dir.join("ods-profiles/empty-list.md"),
-        "---\nname: empty-list\nexpected_keys:\n  - tags\n---\n\n# Empty List\n",
+        "---\nods:\n  custom_profile:\n    name: empty-list\n    required_keys:\n      - tags\n---\n\n# Empty List\n",
     )
     .unwrap();
     fs::write(
@@ -212,7 +313,7 @@ fn expected_keys_treat_empty_known_lists_as_non_null() {
     let diagnostics = lint_workspace(&workspace);
     let missing = diagnostics
         .iter()
-        .filter(|diagnostic| diagnostic.message.contains("missing expected key"))
+        .filter(|diagnostic| diagnostic.message.contains("missing required key"))
         .collect::<Vec<_>>();
 
     assert_eq!(missing.len(), 1, "{diagnostics:#?}");

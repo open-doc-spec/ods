@@ -1,4 +1,3 @@
-
 fn lint_cycles(workspace: &Workspace, ids: &BTreeMap<String, Vec<&Document>>) -> Vec<Diagnostic> {
     let graph = dependency_graph(workspace, ids);
     let mut diagnostics = Vec::new();
@@ -140,20 +139,32 @@ fn lint_document(
 
             let profile = frontmatter.profile.as_deref().unwrap_or("note");
             if let Some(def) = workspace.profiles.definitions.get(profile) {
-                for key in &def.expected_keys {
-                    if !expected_key_is_present(frontmatter, key) {
+                for key in &def.required_keys {
+                    if !required_key_is_present(frontmatter, key) {
                         diagnostics.push(Diagnostic {
                             path: document.path.clone(),
                             severity: Severity::Warning,
-                            message: crate::error::lint_missing_expected_key(key, profile),
+                            message: crate::error::lint_missing_required_key(key, profile),
+                        });
+                    }
+                }
+                for key in &def.forbidden_keys {
+                    if frontmatter_key_is_present(frontmatter, key) {
+                        diagnostics.push(Diagnostic {
+                            path: document.path.clone(),
+                            severity: Severity::Warning,
+                            message: crate::error::lint_forbidden_profile_key(key, profile),
                         });
                     }
                 }
             } else {
                 diagnostics.push(Diagnostic {
                     path: document.path.clone(),
-                    severity: Severity::Warning,
-                    message: crate::error::lint_unknown_profile(profile),
+                    severity: Severity::Error,
+                    message: crate::error::lint_unknown_profile_with_sources(
+                        profile,
+                        &workspace.config.custom_profiles,
+                    ),
                 });
             }
 
@@ -183,7 +194,7 @@ fn lint_document(
     diagnostics
 }
 
-fn expected_key_is_present(frontmatter: &crate::model::Frontmatter, key: &str) -> bool {
+fn required_key_is_present(frontmatter: &crate::model::Frontmatter, key: &str) -> bool {
     use crate::model::CustomValue;
 
     let key = key.trim().to_lowercase();
@@ -209,7 +220,6 @@ fn expected_key_is_present(frontmatter: &crate::model::Frontmatter, key: &str) -
         "ignore" => frontmatter.non_null_keys.contains("ignore"),
         "name" => frontmatter.name.is_some(),
         "title" => frontmatter.title.is_some(),
-        "expected_keys" | "expected-keys" => !frontmatter.expected_keys.is_empty(),
         "specs" => frontmatter.non_null_keys.contains("specs"),
         "okf_lint" | "okf-lint" => frontmatter.non_null_keys.contains("okf_lint"),
         "skills_lint" | "skills-lint" => frontmatter.non_null_keys.contains("skills_lint"),
@@ -217,6 +227,26 @@ fn expected_key_is_present(frontmatter: &crate::model::Frontmatter, key: &str) -
             .custom_keys
             .get(&key)
             .is_some_and(|value| !matches!(value, CustomValue::Null)),
+    }
+}
+
+fn frontmatter_key_is_present(frontmatter: &crate::model::Frontmatter, key: &str) -> bool {
+    let key = key.trim().to_lowercase();
+    let aliases: &[&str] = match key.as_str() {
+        "created" | "created_at" | "date" => &["created", "created_at", "date"],
+        "updated" | "last_updated" | "updated_at" => &["updated", "last_updated", "updated_at"],
+        "profiles" | "custom-profiles" => &["profiles", "custom-profiles"],
+        "okf_lint" | "okf-lint" => &["okf_lint", "okf-lint"],
+        "skills_lint" | "skills-lint" => &["skills_lint", "skills-lint"],
+        _ => &[""],
+    };
+
+    if aliases == [""] {
+        frontmatter.present_keys.contains(&key)
+    } else {
+        aliases
+            .iter()
+            .any(|alias| frontmatter.present_keys.contains(*alias))
     }
 }
 
@@ -285,7 +315,13 @@ fn is_valid_date_str(s: &str) -> bool {
     if s.len() < 8 {
         return false;
     }
-    let date_part = s.split('T').next().unwrap_or(s).split(' ').next().unwrap_or(s);
+    let date_part = s
+        .split('T')
+        .next()
+        .unwrap_or(s)
+        .split(' ')
+        .next()
+        .unwrap_or(s);
     let parts: Vec<&str> = date_part.split('-').collect();
     if parts.len() == 3 {
         parts[0].len() == 4
@@ -323,7 +359,11 @@ mod test_canonical_dates_and_cycles {
 
         let ws = load_workspace(root).unwrap();
         let diags = crate::lint_workspace(&ws);
-        assert!(diags.iter().any(|d| d.message.contains("created") || d.message.contains("updated")));
+        assert!(
+            diags
+                .iter()
+                .any(|d| d.message.contains("created") || d.message.contains("updated"))
+        );
     }
 
     #[test]
@@ -343,6 +383,8 @@ mod test_canonical_dates_and_cycles {
 
         let ws = load_workspace(root).unwrap();
         let diags = crate::lint_workspace(&ws);
-        assert!(diags.iter().any(|d| d.message.contains("dangling") || d.message.contains("pack") || d.message.contains("ODS version")));
+        assert!(diags.iter().any(|d| d.message.contains("dangling")
+            || d.message.contains("pack")
+            || d.message.contains("ODS version")));
     }
 }
