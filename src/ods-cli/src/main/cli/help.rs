@@ -1728,7 +1728,173 @@ mod test_help_catalog {
             "logs".into(),
             "-f".into()
         ]));
-        assert!(command_accepts_help_subcommand("pack"));
+        for cmd in [
+            "skill",
+            "pack",
+            "agents",
+            "workspaces",
+            "profile",
+            "profiles",
+            "tag",
+            "bench",
+            "alias",
+            "aliases",
+        ] {
+            assert!(command_accepts_help_subcommand(cmd), "{cmd}");
+        }
         assert!(!command_accepts_help_subcommand("read"));
+        assert!(!command_accepts_help_subcommand("lint"));
+    }
+
+    #[test]
+    fn print_ods_help_and_remaining_aliases() {
+        print_ods_help();
+        for alias in [
+            "summary",
+            "profiles",
+            "alias",
+            "remove",
+            "enable",
+            "revert",
+            "sandbox",
+            "--version",
+            "-V",
+            "--help",
+            "-h",
+            "version",
+            "help",
+        ] {
+            assert!(print_command_help(alias), "{alias}");
+        }
+    }
+
+    #[test]
+    fn try_print_help_covers_flag_and_subcommand_forms() {
+        for args in [
+            vec!["ods".into(), "--help".into()],
+            vec!["ods".into(), "-h".into()],
+            vec!["ods".into(), "help".into(), "--help".into()],
+            vec!["ods".into(), "help".into(), "-h".into()],
+            vec!["ods".into(), "help".into(), "help".into()],
+            vec!["ods".into(), "--help".into(), "lint".into()],
+            vec!["ods".into(), "-h".into(), "serve".into()],
+            vec!["ods".into(), "pack".into(), "help".into()],
+            vec!["ods".into(), "profiles".into(), "help".into()],
+            vec!["ods".into(), "tag".into(), "help".into()],
+            vec!["ods".into(), "bench".into(), "help".into()],
+            vec!["ods".into(), "alias".into(), "help".into()],
+            vec!["ods".into(), "aliases".into(), "help".into()],
+            vec!["ods".into(), "agents".into(), "help".into()],
+            vec!["ods".into(), "workspaces".into(), "help".into()],
+            vec!["ods".into(), "lint".into(), "-h".into()],
+        ] {
+            let handled = try_print_cli_help(&args);
+            assert!(
+                handled.as_ref().is_some_and(|r| r.is_ok()),
+                "expected help for {args:?}"
+            );
+        }
+
+        let unknown_cmd_help =
+            try_print_cli_help(&["ods".into(), "nope-xyz".into(), "--help".into()]);
+        assert!(unknown_cmd_help.is_none());
+
+        assert!(try_print_cli_help(&["ods".into(), "version".into()]).is_none());
+    }
+
+    #[test]
+    fn command_help_guards_print_and_exit() {
+        for args in [
+            vec!["ods".into(), "clean".into(), "--help".into()],
+            vec!["ods".into(), "completion".into(), "-h".into()],
+            vec!["ods".into(), "diff".into(), "--help".into()],
+            vec!["ods".into(), "fmt".into(), "--help".into()],
+            vec!["ods".into(), "adopt".into(), "--help".into()],
+            vec!["ods".into(), "init".into(), "--help".into()],
+            vec!["ods".into(), "tags".into(), "--help".into()],
+            vec!["ods".into(), "coverage".into(), "--help".into()],
+            vec!["ods".into(), "stats".into(), "--help".into()],
+            vec!["ods".into(), "tree".into(), "--help".into()],
+            vec!["ods".into(), "share".into(), "--help".into()],
+            vec!["ods".into(), "doctor".into(), "--help".into()],
+            vec!["ods".into(), "sync".into(), "--help".into()],
+            vec!["ods".into(), "watch".into(), "--help".into()],
+            vec!["ods".into(), "serve".into(), "--help".into()],
+            vec!["ods".into(), "export".into(), "--help".into()],
+            vec!["ods".into(), "start".into(), "--help".into()],
+            vec!["ods".into(), "stop".into(), "--help".into()],
+            vec!["ods".into(), "logs".into(), "--help".into()],
+            vec!["ods".into(), "new".into(), "--help".into()],
+            vec!["ods".into(), "rm".into(), "--help".into()],
+            vec!["ods".into(), "archive".into(), "--help".into()],
+            vec!["ods".into(), "lsp".into(), "--help".into()],
+            vec!["ods".into(), "upgrade".into(), "--help".into()],
+        ] {
+            let handled = try_print_cli_help(&args);
+            assert!(
+                handled.as_ref().is_some_and(|r| r.is_ok()),
+                "expected help for {args:?}"
+            );
+        }
+
+        assert!(run_clean_command(&["ods".into(), "clean".into(), "--help".into()]).is_ok());
+        assert!(
+            run_completion_command(&["ods".into(), "completion".into(), "--help".into()]).is_ok()
+        );
+        assert!(run_diff_command(&["ods".into(), "diff".into(), "--help".into()]).is_ok());
+        assert!(run_fmt_command(&["ods".into(), "fmt".into(), "--help".into()]).is_ok());
+        assert!(run_adopt_command(&["ods".into(), "adopt".into(), "--help".into()]).is_ok());
+        assert!(run_init_command(&["ods".into(), "init".into(), "--help".into()]).is_ok());
+        assert!(run_tags_command(&["ods".into(), "tags".into(), "--help".into()]).is_ok());
+        assert!(run_coverage_command(&["ods".into(), "coverage".into(), "--help".into()]).is_ok());
+        assert!(run_stats_command(&["ods".into(), "stats".into(), "--help".into()]).is_ok());
+        assert!(run_tree_command(&["ods".into(), "tree".into(), "--help".into()]).is_ok());
+        assert!(run_share_command(&["ods".into(), "share".into(), "--help".into()]).is_ok());
+        assert!(run_doctor_command(&["ods".into(), "doctor".into(), "--help".into()]).is_ok());
+        assert!(run_sync_command(&["ods".into(), "sync".into(), "--help".into()]).is_ok());
+        assert!(run_watch_command(&["ods".into(), "watch".into(), "--help".into()]).is_ok());
+        assert!(run_serve_command(&["ods".into(), "serve".into(), "--help".into()]).is_ok());
+        assert!(run_export_command(&["ods".into(), "export".into(), "--help".into()]).is_ok());
+        assert!(run_start_command(&["ods".into(), "start".into(), "--help".into()]).is_ok());
+        assert!(run_stop_command(&["ods".into(), "stop".into(), "--help".into()]).is_ok());
+        assert!(run_logs_command(&["ods".into(), "logs".into(), "--help".into()]).is_ok());
+        assert!(run_new_command(&["ods".into(), "new".into(), "--help".into()]).is_ok());
+        assert!(run_rm_command(&["ods".into(), "rm".into(), "--help".into()]).is_ok());
+        assert!(run_archive_command(&["ods".into(), "archive".into(), "--help".into()]).is_ok());
+        assert!(run_lsp_command(&["ods".into(), "lsp".into(), "--help".into()]).is_ok());
+        assert!(run_upgrade_command(&["ods".into(), "upgrade".into(), "--help".into()]).is_ok());
+        assert!(run_update_command(&["ods".into(), "update".into(), "--help".into()]).is_ok());
+        assert!(
+            run_profile_list_command(&["ods".into(), "profile".into(), "--help".into()]).is_ok()
+        );
+        assert!(run_profile_init_command(&[
+            "ods".into(),
+            "profile".into(),
+            "init".into(),
+            "--help".into()
+        ])
+        .is_ok());
+        assert!(run_profile_show_command(&[
+            "ods".into(),
+            "profile".into(),
+            "show".into(),
+            "--help".into()
+        ])
+        .is_ok());
+        assert!(run_mv_command(&["ods".into(), "mv".into(), "--help".into()]).is_ok());
+        assert!(run_read_command(&["ods".into(), "read".into(), "--help".into()]).is_ok());
+        assert!(run_schema_command(&["ods".into(), "schema".into(), "--help".into()]).is_ok());
+        assert!(run_undo_command(&["ods".into(), "undo".into(), "--help".into()]).is_ok());
+        assert!(run_status_command(&["ods".into(), "status".into(), "--help".into()]).is_ok());
+        assert!(run_ods_audit_command(&["ods".into(), "audit".into(), "--help".into()]).is_ok());
+        assert!(run_pack_command(&["ods".into(), "pack".into(), "--help".into()]).is_ok());
+        assert!(run_bench_command(&["ods".into(), "bench".into(), "--help".into()]).is_ok());
+        assert!(run_setup_command(&["ods".into(), "setup".into(), "--help".into()]).is_ok());
+        assert!(run_skill_command(&["ods".into(), "skill".into(), "--help".into()]).is_ok());
+        assert!(dispatch_agents_command(&["ods".into(), "agents".into(), "--help".into()]).is_ok());
+        assert!(
+            run_workspaces_command(&["ods".into(), "workspaces".into(), "--help".into()]).is_ok()
+        );
+        assert!(run_aliases_command(&["ods".into(), "alias".into(), "--help".into()]).is_ok());
     }
 }
