@@ -1,12 +1,6 @@
 fn run_overview_command(args: &[String]) -> Result<ExitCode, CliError> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
-        println!(
-            "ods overview [path] [--format text|json]\n\n\
-             Generate a compact workspace snapshot for AI cold-start orientation.\n\
-             Alias: ods summary\n\n\
-             Outputs total documents, profile/status breakdown, top tags, custom keys, and graph stats.\n\
-             For lint health %, use `ods stats` instead.\n"
-        );
+        print_command_help("overview");
         return Ok(ExitCode::from(0));
     }
 

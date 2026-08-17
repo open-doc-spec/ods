@@ -1,17 +1,6 @@
 fn run_schema_command(args: &[String]) -> Result<ExitCode, CliError> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
-        println!(
-            "ods schema [keys] [flags]\n\n\
-             Generate or inspect schema key definitions.\n\n\
-             Subcommands / Flags:\n\
-               ods schema keys                  List registered schema keys\n\
-               --write, -w                      Save schema to .ods/<dialect>.schema.json\n\
-               --out <file>, -o <file>          Save schema to specified path\n\
-               --okf                            Use OKF schema\n\
-               --skills                         Use Skills schema\n\
-               --spec <name>                    Select dialect (ods|okf|skills)\n\
-               --format text|json               Output format (default: json for schema, text for keys)\n"
-        );
+        print_command_help("schema");
         return Ok(ExitCode::from(0));
     }
 

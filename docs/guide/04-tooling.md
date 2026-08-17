@@ -9,6 +9,8 @@ ods:
 
 Reference implementation: the single native **`ods` CLI**. ODS is the default engine (no `--ods` flag). Extra specs use flags only: `--okf`, `--skills`. Editor support is built in via **`ods lsp`** (JSON-RPC over stdio; not the same as `ods serve`).
 
+In the terminal, `ods` / `ods --help` lists every command by task. `ods help <command>` (or `ods <command> --help`) prints usage, arguments, flags, and examples.
+
 ---
 
 ## Production Checklist
@@ -36,7 +38,7 @@ Happy path: [Quickstart Guide](/docs/quickstart).
 | `ods init [path]` | 🏁 **Tier 1: Novice** | Make folder/repo ODS-compliant (writes root `ods.toml`). `--adopt` drafts frontmatter. No nested indexes. |
 | `ods setup [path]` | 🏁 **Tier 1: Novice** | Set up machine background service for workspace, check updates, and run `ods doctor`. `--git-hooks` installs pre-commit hook. `--editor zed\|vscode\|nvim\|cursor` writes `ods lsp` config. |
 | `ods lsp` | 🏁 **Tier 1: Novice** | JSON-RPC Language Server (stdio / `--port`); not the same as `ods serve`. |
-| `ods lint` / `ods lint [path]` | 🏁 **Tier 1: Novice** | Validate graph & schemas (`ods lint\|3`, `--format text\|json\|sarif`, `--canonical-refs`). Generates or clears `.ods/ods-errors.md`. |
+| `ods lint` / `ods lint [path]` | 🏁 **Tier 1: Novice** | Validate graph & schemas (`--format text\|json\|sarif`, `--canonical-refs`). Generates or clears `.ods/ods-errors.md`. |
 | `ods new <path>` | 🛠️ **Tier 2: Practitioner** | Scaffold a new Markdown document with inferred profile (`guide`, `feature`, etc.) and valid frontmatter. |
 | `ods mv <from> <to>` | 🛠️ **Tier 2: Practitioner** | Offline document move + rewrite graph references workspace-wide. |
 | `ods sync [path]` | 🛠️ **Tier 2: Practitioner** | Reconcile git-tracked renames (`git status --porcelain`) and rewrite graph references. |
@@ -53,7 +55,6 @@ Happy path: [Quickstart Guide](/docs/quickstart).
 | `ods profiles [path]` | 📋 **Tier 3: Power User** | List standard and custom profiles loaded in workspace and report schema conflicts. |
 | `ods profile init <name>` | 📋 **Tier 3: Power User** | Scaffold `.ods/profiles/<name>.md` and **register** under root `custom_profiles (ods.toml):` (use `--no-register` to skip). |
 | `ods profile show <name>` | 📋 **Tier 3: Power User** | Show profile layer, source, sections, and required/optional/forbidden keys. |
-| `ods aliases` / `ods alias add` | 📋 **Tier 3: Power User** | List or add **section-heading** aliases in root `ods.toml` `[aliases]`. |
 | `ods tags [path]` | 📋 **Tier 3: Power User** | List **top-level** document tags with counts (`--all` includes default unused tags). Tags must not live under `ods:`. |
 | `ods tag list` / `ods tag show <tag>` | 📋 **Tier 3: Power User** | Observed tags with counts or docs for one tag (`--format text\|json`). Complements `ods tags` (which can include unused builtins via `--all`). |
 | `ods tag rename <old> <new>` | 📋 **Tier 3: Power User** | Workspace-wide top-level tag rename (dry-run; `--write`). |
@@ -121,7 +122,7 @@ In CI pipelines:
 
 ```bash
 ods lint
-ods lint --level 3
+ods lint --format sarif
 ```
 
 ---

@@ -1,13 +1,6 @@
 fn run_undo_command(args: &[String]) -> Result<ExitCode, CliError> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
-        println!(
-            "ods undo [path] [--list]\n\n\
-             Restore the latest workspace frontmatter snapshot (from `ods bench strip --write`\n\
-             or other snapshot-creating operations under ~/.ods/backups/<repo-hash>/).\n\n\
-             Not every mutating command creates a snapshot today. Prefer git for general undo.\n\n\
-             Flags:\n\
-               --list    List available snapshot ids for this workspace (newest last)\n"
-        );
+        print_command_help("undo");
         return Ok(ExitCode::from(0));
     }
 

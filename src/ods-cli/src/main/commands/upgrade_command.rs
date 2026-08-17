@@ -1,6 +1,10 @@
 /// Forward workspace/machine cutover helper (not dual-compat).
 /// Dry-run by default; `--write` applies safe machine steps + optional FM migrate.
 fn run_upgrade_command(args: &[String]) -> Result<ExitCode, CliError> {
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        print_command_help("upgrade");
+        return Ok(ExitCode::from(0));
+    }
     let write = args.iter().any(|a| a == "--write");
     let check = args.iter().any(|a| a == "--check");
     let migrate_fm = args.iter().any(|a| a == "--migrate-fm");
@@ -127,10 +131,7 @@ fn run_upgrade_command(args: &[String]) -> Result<ExitCode, CliError> {
 
 fn run_ods_audit_command(args: &[String]) -> Result<ExitCode, CliError> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
-        println!(
-            "ods audit [path] [--write-report] [--report-path <path>] [--fail-on any|plain|invalid] [--format text|json]\n\n\
-             Inventory plain, invalid, partial, and compliant Markdown documents."
-        );
+        print_command_help("audit");
         return Ok(ExitCode::from(0));
     }
     let write_report = args.iter().any(|a| a == "--write-report");

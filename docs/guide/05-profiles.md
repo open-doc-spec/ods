@@ -48,14 +48,7 @@ ods profiles                      # list standard + custom
 
 By default, `profile init` appends `.ods/profiles/<name>.md` under root **`custom_profiles (ods.toml):`**. No folder auto-discovery: unlisted paths are ignored.
 
-### Section aliases
-
-Workspace **section aliases** live in root **`ods.toml`** under `[aliases]` and extend which H2 headings satisfy a profile section check. Standard profiles already ship pipe-alternatives (e.g. `Goal | Objective | Purpose`).
-
-```bash
-ods aliases
-ods alias add Goal Objective
-```
+Profile section titles are exact. Extra heading synonyms belong in the profile definition (pipe-alternatives such as `Goal | Objective`). Workspace `[aliases]` and the `ods alias` / `ods aliases` commands were removed.
 
 ---
 

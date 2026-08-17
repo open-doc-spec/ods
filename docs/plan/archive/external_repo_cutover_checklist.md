@@ -31,7 +31,7 @@ Local dry-run without publishing:
 # After a GitHub Release publishes ods-* assets:
 export GH_TOKEN="$(gh auth token)"   # private repo
 curl -fsSL -H "Authorization: Bearer ${GH_TOKEN}" \
-  https://raw.githubusercontent.com/StaytunedLLP/open-document-spec/main/src/scripts/install.sh | bash
+  https://raw.githubusercontent.com/open-doc-spec/ods/main/src/scripts/install.sh | bash
 ods --version
 ```
 

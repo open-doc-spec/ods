@@ -481,7 +481,7 @@ jobs:
 
           cat > "dist/${OUT}/INSTALL.txt" << 'INSTALLEOF'
           Open Document Spec CLI (ods) @VERSION@ (@ASSET@)
-          Copyright (c) Staytuned LLP. See repository LICENSE.
+          Copyright (c) open-doc-spec. See repository LICENSE.
 
           First install:
             curl -fsSL https://opendocify.com/install.sh | bash
@@ -527,7 +527,7 @@ jobs:
 
           $InstallText = @"
           Open Document Spec CLI (ods) $Version ($Asset)
-          Copyright (c) Staytuned LLP. See repository LICENSE.
+          Copyright (c) open-doc-spec. See repository LICENSE.
 
           First install:
             irm https://opendocify.com/install.ps1 | iex

@@ -2,13 +2,7 @@ fn dispatch_agents_command(args: &[String]) -> Result<ExitCode, CliError> {
     let sub = args.get(2).map(String::as_str).unwrap_or("help");
     match sub {
         "help" | "--help" | "-h" | "" => {
-            println!(
-                "ods agents <command>\n\n\
-                 Agent instruction graph commands.\n\n\
-                 Commands:\n\
-                   sync [path]   Write/update AGENTS.md (+ optional .claude/.cursor snippets)\n\
-                   help          Show this help\n"
-            );
+            print_command_help("agents");
             Ok(ExitCode::from(0))
         }
         "sync" => run_agents_sync_command(args),

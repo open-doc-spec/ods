@@ -4,6 +4,10 @@ use std::net::TcpListener;
 use serde_json::{Value, json};
 
 pub(crate) fn run_lsp_command(args: &[String]) -> Result<ExitCode, CliError> {
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        print_command_help("lsp");
+        return Ok(ExitCode::from(0));
+    }
     let port = parse_port_flag(args);
     if let Some(port) = port {
         let listener = TcpListener::bind(format!("127.0.0.1:{port}"))

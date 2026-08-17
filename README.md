@@ -6,9 +6,9 @@ ods:
 
 # Open Document Spec (ODS)
 
-[![CI](https://github.com/StaytunedLLP/open-document-spec/actions/workflows/pr.yml/badge.svg)](https://github.com/StaytunedLLP/open-document-spec/actions/workflows/pr.yml)
+[![CI](https://github.com/open-doc-spec/ods/actions/workflows/pr.yml/badge.svg)](https://github.com/open-doc-spec/ods/actions/workflows/pr.yml)
 [![GitHub Marketplace](https://img.shields.io/badge/Marketplace-Open--Document--Spec-blue.svg?logo=github)](https://github.com/marketplace)
-[![Compliance](https://img.shields.io/badge/ODS-Level--3-green.svg)](https://github.com/StaytunedLLP/open-document-spec)
+[![Compliance](https://img.shields.io/badge/ODS-Level--3-green.svg)](https://github.com/open-doc-spec/ods)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
 **Open Document Spec (ODS)** is a lightweight, human-first convention built on plain Markdown. It enriches Markdown repositories with machine-readable YAML frontmatter metadata, explicit graph relationships, and sub-5ms deterministic AI context loading—managed by the high-performance native **Open Document Spec CLI (`ods`)**.
@@ -91,7 +91,7 @@ Progress from initial setup to enterprise documentation architecture across 4 st
 | 🔒 **Secret & Pack Isolation** | `share: private` / `ods share` | Protects private secrets and exports sanitized public workspace packs (`ods pack`). |
 | ⚙️ **Background OS Daemon & Watcher** | `ods setup` / `ods start` | FS watcher (not LSP). Editors use **`ods lsp`** (JSON-RPC). |
 | 🤖 **Zero-Terminal AI Skill** | `skills/ods/SKILL.md` + `ods skill install` | Skill-first integration; `ods agents sync` for AGENTS.md. |
-| 🚀 **GitHub Marketplace Action** | `uses: StaytunedLLP/open-document-spec@v1` | Automated CI linting and GitHub PR inline code annotations. |
+| 🚀 **GitHub Marketplace Action** | `uses: open-doc-spec/ods-action@v1` | Automated CI linting and GitHub PR inline code annotations. |
 
 ---
 
@@ -127,13 +127,13 @@ Tell your AI Assistant: _"Install Open Document Spec skill"_. The skill detects 
 **macOS / Linux**:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/StaytunedLLP/open-document-spec/main/src/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/open-doc-spec/ods/main/src/scripts/install.sh | bash
 ```
 
 **Windows (PowerShell)**:
 
 ```powershell
-irm https://raw.githubusercontent.com/StaytunedLLP/open-document-spec/main/src/scripts/install.ps1 | iex
+irm https://raw.githubusercontent.com/open-doc-spec/ods/main/src/scripts/install.ps1 | iex
 ```
 
 </details>
@@ -265,7 +265,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Verify Open Document Spec Graph
-        uses: StaytunedLLP/open-document-spec@v1
+        uses: open-doc-spec/ods-action@v1
         with:
           version: 'latest'
           command: 'lint'

@@ -77,7 +77,7 @@ function Invoke-Install {
     if (Test-Path $SrcInstallScript) {
         & $SrcInstallScript
     } else {
-        irm https://raw.githubusercontent.com/StaytunedLLP/open-document-spec/main/src/scripts/install.ps1 | iex
+        irm https://raw.githubusercontent.com/open-doc-spec/ods/main/src/scripts/install.ps1 | iex
     }
 }
 

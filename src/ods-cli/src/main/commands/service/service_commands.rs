@@ -1,4 +1,8 @@
 fn run_doctor_command(args: &[String]) -> Result<ExitCode, CliError> {
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        print_command_help("doctor");
+        return Ok(ExitCode::from(0));
+    }
     let (root, _level, format) = parse_common_flags(args, 2)?;
     let extra = ods_core::parse_extra_spec_flags(args.iter().map(String::as_str))
         .map_err(|e| usage(e.message()))?;
@@ -30,6 +34,10 @@ fn run_doctor_command(args: &[String]) -> Result<ExitCode, CliError> {
 }
 
 fn run_sync_command(args: &[String]) -> Result<ExitCode, CliError> {
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        print_command_help("sync");
+        return Ok(ExitCode::from(0));
+    }
     let (root, _level, format) = parse_common_flags(args, 2)?;
     require_ods_workspace(&root)?;
     let report = sync_git_renames(&root)?;
@@ -38,6 +46,10 @@ fn run_sync_command(args: &[String]) -> Result<ExitCode, CliError> {
 }
 
 fn run_watch_command(args: &[String]) -> Result<ExitCode, CliError> {
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        print_command_help("watch");
+        return Ok(ExitCode::from(0));
+    }
     maybe_auto_update_on_watch();
     let (root, level, format) = parse_common_flags(args, 2)?;
     let extra = ods_core::parse_extra_spec_flags(args.iter().map(String::as_str))
@@ -63,6 +75,10 @@ fn run_watch_command(args: &[String]) -> Result<ExitCode, CliError> {
 }
 
 fn run_serve_command(args: &[String]) -> Result<ExitCode, CliError> {
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        print_command_help("serve");
+        return Ok(ExitCode::from(0));
+    }
     // Headless loop for OS service (no interactive green spam).
     let options = serve_options_from_args(args)?;
     let extra = ods_core::parse_extra_spec_flags(args.iter().map(String::as_str))
@@ -88,6 +104,10 @@ fn run_serve_command(args: &[String]) -> Result<ExitCode, CliError> {
 }
 
 fn run_export_command(args: &[String]) -> Result<ExitCode, CliError> {
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        print_command_help("export");
+        return Ok(ExitCode::from(0));
+    }
     let (root, out, format, spec) = parse_export_args(args)?;
     let extra = ods_core::parse_extra_spec_flags(args.iter().map(String::as_str))
         .map_err(|e| usage(e.message()))?;
@@ -140,6 +160,10 @@ fn run_export_command(args: &[String]) -> Result<ExitCode, CliError> {
 }
 
 fn run_start_command(args: &[String]) -> Result<ExitCode, CliError> {
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        print_command_help("start");
+        return Ok(ExitCode::from(0));
+    }
     let status_only = args.iter().any(|a| a == "--status");
     let (root, _level, _format) = parse_common_flags(args, 2)?;
     let root = resolve_root_path(root);
@@ -159,6 +183,10 @@ fn run_start_command(args: &[String]) -> Result<ExitCode, CliError> {
 }
 
 fn run_stop_command(args: &[String]) -> Result<ExitCode, CliError> {
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        print_command_help("stop");
+        return Ok(ExitCode::from(0));
+    }
     let unregister = args.iter().any(|a| a == "--unregister");
     let (root, _level, _format) = parse_common_flags(args, 2)?;
     let root = resolve_root_path(root);

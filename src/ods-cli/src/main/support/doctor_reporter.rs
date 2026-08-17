@@ -46,7 +46,7 @@ fn print_diagnostics(diagnostics: &[Diagnostic], format: OutputFormat) {
                 })
                 .collect();
             println!(
-                r#"{{"$schema":"https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json","version":"2.1.0","runs":[{{"tool":{{"driver":{{"name":"ODS","informationUri":"https://github.com/StaytunedLLP/open-document-spec","version":"{}"}}}},"results":[{}]}}]}}"#,
+                r#"{{"$schema":"https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json","version":"2.1.0","runs":[{{"tool":{{"driver":{{"name":"ODS","informationUri":"https://github.com/open-doc-spec/ods","version":"{}"}}}},"results":[{}]}}]}}"#,
                 env!("CARGO_PKG_VERSION"),
                 results.join(",")
             );

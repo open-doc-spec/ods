@@ -2,6 +2,9 @@ fn run_bench_command(args: &[String]) -> Result<ExitCode, CliError> {
     let sub = args.get(2).map(String::as_str).unwrap_or("stats");
 
     match sub {
+        "help" | "--help" | "-h" => {
+            print_command_help("bench");
+        }
         "strip" => {
             let write = args.iter().any(|a| a == "--write");
             let full = args.iter().any(|a| a == "--full");

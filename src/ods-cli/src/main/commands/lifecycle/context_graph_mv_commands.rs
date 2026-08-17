@@ -1,25 +1,6 @@
 fn run_context_command(args: &[String]) -> Result<ExitCode, CliError> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
-        println!(
-            "ods context <id-or-path> [flags]\n\n\
-             Resolve a bounded AI reading list (target + depends + context.load).\n\
-             Does not walk `related` unless --include-related. Code edges off unless --include-code.\n\
-             With --okf on a hybrid workspace, merges OKF markdown-link neighborhood after ODS graph.\n\
-             When the id is omitted, --tag / --key / --status may resolve a unique target.\n\n\
-             Flags:\n\
-               --root <dir>           Workspace root (default: cwd)\n\
-               --tag <name>           When no id: require this tag (unique match)\n\
-               --key <expr>           When no id: key filter (unique match)\n\
-               --status <status>      When no id: shortcut for --key status=<status>\n\
-               --include-private      Include share: private documents\n\
-               --include-code         Expand code: edges into the reading list\n\
-               --include-related      Also walk soft related: edges\n\
-               --explain              Show why each path was included\n\
-               --max-tokens <N>       Cap estimated tokens (bytes/4 heuristic)\n\
-               --print                Print file contents under the budget (prompt pack)\n\
-               --format text|json     Output format (default text)\n\
-               --okf                  Include OKF context (pure OKF or hybrid merge)\n"
-        );
+        print_command_help("context");
         return Ok(ExitCode::from(0));
     }
     // Context is special: the primary positional is a *document id*, not a workspace root.
@@ -240,6 +221,10 @@ fn run_context_command(args: &[String]) -> Result<ExitCode, CliError> {
 }
 
 fn run_graph_command(args: &[String]) -> Result<ExitCode, CliError> {
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        print_command_help("graph");
+        return Ok(ExitCode::from(0));
+    }
     let (root, _level, format) = parse_common_flags(args, 2)?;
     require_ods_workspace(&root)?;
     let workspace = load_workspace_with_options(&root, load_options_graph())
@@ -260,6 +245,10 @@ fn run_graph_command(args: &[String]) -> Result<ExitCode, CliError> {
 }
 
 fn run_mv_command(args: &[String]) -> Result<ExitCode, CliError> {
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        print_command_help("mv");
+        return Ok(ExitCode::from(0));
+    }
     let (_, _level, format) = parse_common_flags(args, 2)?;
     let positionals = positional_args(args, 2);
     let dry_run = args.iter().any(|a| a == "--dry-run");

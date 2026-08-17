@@ -74,10 +74,10 @@ fn install_release(tag: &str, target: &str, prefix: &Path) -> Result<(), String>
     eprintln!("ods: downloading {filename}…");
 
     let direct_archive_url = format!(
-        "https://github.com/StaytunedLLP/open-document-spec/releases/download/{tag}/{filename}"
+        "https://github.com/open-doc-spec/ods/releases/download/{tag}/{filename}"
     );
     let direct_sums_url = format!(
-        "https://github.com/StaytunedLLP/open-document-spec/releases/download/{tag}/SHA256SUMS"
+        "https://github.com/open-doc-spec/ods/releases/download/{tag}/SHA256SUMS"
     );
 
     let (archive, sums_bytes) = match (

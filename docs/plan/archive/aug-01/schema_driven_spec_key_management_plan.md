@@ -78,27 +78,27 @@ pub struct SpecSchema {
 
 ### Component: `ods-core/src/spec/`
 
-#### [NEW] [schema.rs](file:///home/beingminimal/Downloads/gh-beingminimal/StaytunedLLP/open-document-spec/src/ods-core/src/spec/schema.rs)
+#### [NEW] [schema.rs](file:///home/beingminimal/Downloads/gh-beingminimal/open-doc-spec/ods/src/ods-core/src/spec/schema.rs)
 - Implements `SpecSchema`, `KeyDefinition`, `KeyPlacement`, `KeyType`, and `SpecSchemaRegistry`.
 - Pre-loads standard schemas:
   - `ods_schema()`: Standard ODS keys + key placement constraints.
   - `okf_schema()`: Standard OKF v0.2 keys.
 
-#### [MODIFY] [descriptor.rs](file:///home/beingminimal/Downloads/gh-beingminimal/StaytunedLLP/open-document-spec/src/ods-core/src/spec/descriptor.rs)
+#### [MODIFY] [descriptor.rs](file:///home/beingminimal/Downloads/gh-beingminimal/open-doc-spec/ods/src/ods-core/src/spec/descriptor.rs)
 - Integrates `SpecSchemaRegistry` with existing `SpecDescriptor` and `ExtractedKeys`.
 
 ---
 
 ### Component: `ods-core/src/parse/`
 
-#### [MODIFY] [frontmatter.rs](file:///home/beingminimal/Downloads/gh-beingminimal/StaytunedLLP/open-document-spec/src/ods-core/src/parse/frontmatter.rs)
+#### [MODIFY] [frontmatter.rs](file:///home/beingminimal/Downloads/gh-beingminimal/open-doc-spec/ods/src/ods-core/src/parse/frontmatter.rs)
 - Uses `SpecSchemaRegistry` to dispatch scalar vs list vs map key parsing dynamically.
 
 ---
 
 ### Component: `ods-core/src/lint/`
 
-#### [MODIFY] [checker.rs](file:///home/beingminimal/Downloads/gh-beingminimal/StaytunedLLP/open-document-spec/src/ods-core/src/lint/checker.rs)
+#### [MODIFY] [checker.rs](file:///home/beingminimal/Downloads/gh-beingminimal/open-doc-spec/ods/src/ods-core/src/lint/checker.rs)
 - Validates target document frontmatter against active profile's `SpecSchema`:
   - Verifies presence of keys declared under `expected_keys:`.
   - Emits warnings if engine keys (`profile`, `status`) are misplaced outside `ods:` map.

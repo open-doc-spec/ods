@@ -2,6 +2,10 @@ use std::io as std_io;
 use toml_edit::{Array as TomlArray, DocumentMut, Item as TomlItem, Value as TomlValue};
 
 fn run_profile_init_command(args: &[String]) -> Result<ExitCode, CliError> {
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        print_command_help("profile");
+        return Ok(ExitCode::from(0));
+    }
     // argv: ods profile init <name>  → name at index 3
     let profile_name = args
         .get(3)

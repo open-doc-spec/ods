@@ -1,4 +1,8 @@
 fn run_profile_list_command(args: &[String]) -> Result<ExitCode, CliError> {
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        print_command_help("profile");
+        return Ok(ExitCode::from(0));
+    }
     let (root, _level, format) = parse_common_flags(args, 2)?;
     let workspace = load_workspace(&root).map_err(|err| fail_load(&root, err))?;
     let roots = ods_core::profile_catalog_roots_from_config(&root, &workspace.config);
@@ -48,6 +52,10 @@ fn run_profile_list_command(args: &[String]) -> Result<ExitCode, CliError> {
 }
 
 fn run_profile_show_command(args: &[String]) -> Result<ExitCode, CliError> {
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        print_command_help("profile");
+        return Ok(ExitCode::from(0));
+    }
     let profile_name = args
         .get(3)
         .filter(|a| !a.starts_with('-'))

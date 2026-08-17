@@ -1,4 +1,8 @@
 fn run_share_command(args: &[String]) -> Result<ExitCode, CliError> {
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        print_command_help("share");
+        return Ok(ExitCode::from(0));
+    }
     let (root, scope, out, include_org, include_private) = parse_share_args(args)?;
     require_ods_workspace(&root)?;
     let workspace = load_workspace(&root).map_err(|e| fail_load(&root, e))?;

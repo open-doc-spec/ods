@@ -2,6 +2,10 @@ pub(crate) fn run_pack_command(args: &[String]) -> Result<ExitCode, CliError> {
     let subcommand = args.get(2).map(String::as_str).unwrap_or("list");
 
     match subcommand {
+        "help" | "--help" | "-h" => {
+            print_command_help("pack");
+            Ok(ExitCode::from(0))
+        }
         "list" => run_pack_list(args),
         "add" => run_pack_add(args),
         "sync" => run_pack_sync(args),

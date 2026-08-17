@@ -15,4 +15,4 @@ Enterprise software teams use ODS to enforce documentation compliance, mandatory
 
 1. **Policy Profile (`profile: policy`)**: Enforces required H2 sections (`## Purpose`, `## Scope`, `## Requirements`, `## Enforcement`).
 2. **Status Lifecycle (`status: draft | stable | deprecated | archived`)**: Enforces explicit document maturity.
-3. **Level-3 CI Gate (`ods lint --level 3`)**: Fails pull requests if required sections or links are missing.
+3. **CI gate (`ods lint`)**: Fails pull requests if required sections or links are missing.

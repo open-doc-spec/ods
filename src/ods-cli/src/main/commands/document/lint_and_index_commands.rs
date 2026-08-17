@@ -1,15 +1,6 @@
 fn run_lint_command(args: &[String]) -> Result<ExitCode, CliError> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
-        println!(
-            "ods lint [path] [flags]\n\n\
-             Validate the ODS document graph (and optionally OKF/Skills).\n\n\
-             Flags:\n\
-               --format text|json|sarif\n\
-               --fix                              No-op for ODS (nested indexes removed; use overview/find/tree)\n\
-               --canonical-refs                     Warn on extensionless document refs\n\
-               --okf / --skills                     Extra dialect engines\n\
-               --skip-frontmatter-keys              Suppress key-requirement lint\n"
-        );
+        print_command_help("lint");
         return Ok(ExitCode::from(0));
     }
     let (root, level, format) = parse_common_flags(args, 2)?;
@@ -104,6 +95,10 @@ fn run_lint_command(args: &[String]) -> Result<ExitCode, CliError> {
 }
 
 fn run_tags_command(args: &[String]) -> Result<ExitCode, CliError> {
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        print_command_help("tags");
+        return Ok(ExitCode::from(0));
+    }
     let (root, _level, format) = parse_common_flags(args, 2)?;
     require_ods_workspace(&root)?;
     let include_all = args.iter().any(|a| a == "--all");
@@ -114,6 +109,10 @@ fn run_tags_command(args: &[String]) -> Result<ExitCode, CliError> {
 }
 
 fn run_coverage_command(args: &[String]) -> Result<ExitCode, CliError> {
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        print_command_help("coverage");
+        return Ok(ExitCode::from(0));
+    }
     let (root, level, format) = parse_common_flags(args, 2)?;
     require_ods_workspace(&root)?;
     let write_report = args.iter().any(|a| a == "--write-report");

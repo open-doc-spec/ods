@@ -1,4 +1,8 @@
 fn run_stats_command(args: &[String]) -> Result<ExitCode, CliError> {
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        print_command_help("stats");
+        return Ok(ExitCode::from(0));
+    }
     let (root, level, format) = parse_common_flags(args, 2)?;
     require_ods_workspace(&root)?;
 

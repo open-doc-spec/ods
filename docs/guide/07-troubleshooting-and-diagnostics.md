@@ -57,7 +57,7 @@ When an issue occurs or documents are modified, follow this 3-step diagnostic wo
 ods doctor
 
 # Step 2: Validate graph relationships, schemas, and references
-ods lint --level 3
+ods lint
 
 # Step 3: Re-lint after fixes (discovery is overview/find/tree — no index lockfiles)
 ods overview
