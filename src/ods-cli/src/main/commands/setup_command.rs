@@ -26,8 +26,6 @@ Commands:
   profiles [path]          List loaded profiles
   profile init <name>      Scaffold custom profile (registers under custom_profiles in ods.toml)
   profile show <name>      Show profile source, sections, and key policies
-  aliases [path]           List workspace section-heading aliases
-  alias add <Can> <Syn>    Add a section alias to root ods.toml [aliases]
   tags [path]              List root-level project tags (observed) with use counts
   tags --all [path]        Include unused default ODS tags
   tag list [path]          List observed workspace tags with document counts

@@ -59,7 +59,6 @@ fn dispatch_ods_command(args: &[String]) -> Result<ExitCode, CliError> {
                 _ => run_profile_list_command(args),
             }
         }
-        "alias" | "aliases" => run_aliases_command(args),
         "tags" => run_tags_command(args),
         "find" => run_find_command(args),
         "tag" => run_tag_command(args),
