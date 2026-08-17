@@ -154,7 +154,7 @@ fn parse_code_refs_reject_missing_path_missing_role_and_invalid_role() {
 }
 
 #[test]
-fn parse_aliases_map() {
+fn parse_custom_keys_map() {
     let root = PathBuf::from("/ws");
     let text = r#"---
 profile: index
@@ -170,10 +170,7 @@ aliases:
     let FrontmatterState::Parsed(fm) = doc.frontmatter else {
         panic!("parse failed");
     };
-    assert_eq!(
-        fm.aliases.get("Goal").map(|v| v.as_slice()),
-        Some(["Mission".to_string(), "Objective".to_string()].as_slice())
-    );
+    assert!(fm.custom_keys.contains_key("aliases"));
 }
 
 #[test]

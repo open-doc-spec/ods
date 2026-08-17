@@ -1,6 +1,6 @@
 use ods_core::{
     lint_workspace, load_workspace, move_document_and_rewrite_refs, profile_section_labels,
-    resolve_context, workspace_alias_suggestions, workspace_aliases,
+    resolve_context,
 };
 use ods_test_support::{copy_fixture_to_temp, temp_workspace};
 use std::fs;
@@ -121,13 +121,9 @@ fn mv_rewrites_references() {
 }
 
 #[test]
-fn root_aliases_allow_workspace_vocab_variants() {
+fn feature_profile_requires_exact_canonical_sections() {
     let temp = temp_workspace();
-    fs::write(
-        temp.join("ods.toml"),
-        "spec = \"0.1\"\n\n[aliases]\nGoal = [\"Mission\"]\n",
-    )
-    .expect("toml");
+    fs::write(temp.join("ods.toml"), "spec = \"0.1\"\n").expect("toml");
     fs::write(
         temp.join("feature.md"),
         "---\nprofile: feature\nstatus: draft\n---\n\n# Feature\n\n## Mission\n## Scope\n## Requirements\n## Acceptance Criteria\n## Risks\n",
@@ -135,13 +131,17 @@ fn root_aliases_allow_workspace_vocab_variants() {
     .expect("feature");
 
     let workspace = load_workspace(&temp).expect("workspace");
-    assert!(workspace_aliases(&workspace).contains_key("Goal"));
     let diagnostics = lint_workspace(&workspace);
-    assert!(diagnostics.is_empty(), "{diagnostics:#?}");
+    assert!(
+        diagnostics
+            .iter()
+            .any(|d| d.message.contains("missing expected section: Goal")),
+        "{diagnostics:#?}"
+    );
     assert!(
         profile_section_labels(&workspace, "feature")
             .iter()
-            .any(|label| label == "Mission")
+            .any(|label| label == "Goal")
     );
 }
 
@@ -156,12 +156,12 @@ fn custom_profiles_are_loaded_from_workspace_catalogs() {
     .expect("toml");
     fs::write(
         temp.join("ods-profiles").join("custom.md"),
-        "---\naliases:\n  Overview:\n    - Summary\n---\n\n# Custom Profile\n\n## Overview\n## Details\n",
+        "# Custom Profile\n\n## Overview\n## Details\n",
     )
     .expect("profile");
     fs::write(
         temp.join("doc.md"),
-        "---\nprofile: custom\nstatus: draft\n---\n\n# Doc\n\n## Summary\n## Details\n",
+        "---\nprofile: custom\nstatus: draft\n---\n\n# Doc\n\n## Overview\n## Details\n",
     )
     .expect("doc");
 
@@ -180,7 +180,7 @@ fn custom_profiles_are_loaded_from_workspace_catalogs() {
     assert!(
         profile_section_labels(&workspace, "custom")
             .iter()
-            .any(|label| label == "Summary")
+            .any(|label| label == "Overview")
     );
     assert!(
         workspace
@@ -231,29 +231,5 @@ fn duplicate_profile_names_are_reported() {
             .join("custom.md")
             .canonicalize()
             .unwrap()
-    );
-}
-
-#[test]
-fn adopt_suggests_workspace_aliases_from_unmatched_headings() {
-    let temp = temp_workspace();
-    fs::write(
-        temp.join("index.md"),
-        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n\n- [feature.md](feature.md)\n",
-    )
-    .expect("root index");
-    fs::write(
-        temp.join("feature.md"),
-        "---\nprofile: feature\nstatus: draft\n---\n\n# Feature\n\n## Mission\n## Scope\n## Requirements\n## Acceptance Criteria\n## Risks\n",
-    )
-    .expect("feature");
-
-    let workspace = load_workspace(&temp).expect("workspace");
-    let suggestions = workspace_alias_suggestions(&workspace);
-
-    assert!(suggestions.contains_key("Goal"), "{suggestions:#?}");
-    assert!(
-        suggestions.get("Goal").expect("goal").contains("Mission"),
-        "{suggestions:#?}"
     );
 }

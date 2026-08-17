@@ -84,8 +84,7 @@ pub use config::{
 };
 pub use lint::{
     known_profiles, lint_document_in_workspace, lint_workspace, lint_workspace_with_level,
-    lint_workspace_with_ref_style, profile_section_labels, profile_sections,
-    workspace_alias_suggestions, workspace_aliases, workspace_compliance,
+    lint_workspace_with_ref_style, profile_section_labels, profile_sections, workspace_compliance,
 };
 pub use model::{
     CodeRef, CodeRole, ComplianceMode, CustomProfileDefinition, CustomValue, Diagnostic, Document,

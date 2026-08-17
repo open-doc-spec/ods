@@ -27,7 +27,7 @@
       "expected_output": "A .md file with top-level `description:` and a nested `ods:` map containing `profile: feature`, `status: draft` (lowercase, profile before status, canonical order), a single `# H1` title, and the feature profile's H2 sections: Goal, Scope, Requirements, Acceptance Criteria, Risks.",
       "assertions": [
         "Frontmatter nests `profile: feature` and a valid lowercase `status` inside an `ods:` map, with `profile` before `status` (canonical order), not as flat top-level keys.",
-        "Body contains the feature profile sections (Goal, Scope, Requirements, Acceptance Criteria, Risks) as H2 headings, or documented aliases.",
+        "Body contains the feature profile sections (Goal, Scope, Requirements, Acceptance Criteria, Risks) as exact canonical H2 headings.",
         "The title appears only as the first `# H1`; there is no `title:` frontmatter field.",
         "Any relationships use only `ods.depends`/`ods.related` in frontmatter, not prose edge lists."
       ]
