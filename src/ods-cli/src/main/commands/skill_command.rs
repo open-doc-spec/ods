@@ -172,17 +172,7 @@ fn write_install_file(path: &Path, contents: &[u8]) -> Result<(), CliError> {
 }
 
 fn print_skill_help() {
-    println!(
-        "ods skill <command> [flags]
-
-Commands:
-  install                  Install ODS skill or rules configuration into an AI agent's directory.
-  help                     Print this help message.
-
-Flags:
-  --agent <name>           The AI agent target (claude-code, cursor, antigravity, codex, gemini-cli, windsurf, copilot)
-  --scope <project|user>   Install to project workspace or global home directory (optional)"
-    );
+    print_command_help("skill");
 }
 
 const CURSOR_MDC_TEMPLATE: &str = r#"---

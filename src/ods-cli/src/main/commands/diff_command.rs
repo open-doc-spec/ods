@@ -1,4 +1,8 @@
 fn run_diff_command(args: &[String]) -> Result<ExitCode, CliError> {
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        print_command_help("diff");
+        return Ok(ExitCode::from(0));
+    }
     let (root, _level, format) = parse_common_flags(args, 2)?;
     require_ods_workspace(&root)?;
 

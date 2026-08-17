@@ -21,7 +21,6 @@ fn help_matrix_for_common_commands() {
         let _ = out.status;
     }
 
-    // Avoid long-running entrypoints that ignore --help and block (lsp/watch/serve/start).
     for cmd in [
         "lint",
         "index",
@@ -52,9 +51,27 @@ fn help_matrix_for_common_commands() {
         "diff",
         "clean",
         "agents",
+        "lsp",
+        "watch",
+        "serve",
+        "start",
+        "logs",
+        "read",
+        "undo",
+        "new",
+        "rm",
     ] {
         let out = ods().args([cmd, "--help"]).output().unwrap();
-        let _ = out.status;
+        assert!(
+            out.status.success(),
+            "{cmd} --help failed: {}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+        let stdout = String::from_utf8_lossy(&out.stdout);
+        assert!(
+            stdout.contains("Usage:"),
+            "{cmd} --help missing Usage:\n{stdout}"
+        );
     }
 }
 

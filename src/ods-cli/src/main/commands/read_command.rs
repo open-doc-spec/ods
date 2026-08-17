@@ -27,16 +27,7 @@ fn parse_read_positionals(args: &[String]) -> Vec<String> {
 
 pub(crate) fn run_read_command(args: &[String]) -> Result<ExitCode, CliError> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
-        println!("ods read — Read section, outline summary, or document content with token budget controls");
-        println!();
-        println!("Usage:");
-        println!("  ods read [root] <id-or-path> [flags]");
-        println!();
-        println!("Flags:");
-        println!("  --section <heading>     Extract section by heading title or slug (e.g. '## Architecture')");
-        println!("  --summary               Return outline summary (headings & metadata) instead of prose");
-        println!("  --max-tokens <N>        Soft token limit (bytes / 4)");
-        println!("  --format <text|json>    Output format (default: text)");
+        print_command_help("read");
         return Ok(ExitCode::from(0));
     }
 

@@ -1,8 +1,14 @@
 fn run_completion_command(args: &[String]) -> Result<ExitCode, CliError> {
-    let shell = args
-        .get(2)
-        .map(|s| s.to_lowercase())
-        .ok_or_else(|| usage_msg(ods_core::missing_required_arg("shell", "ods completion <bash|zsh|fish|powershell>")))?;
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        print_command_help("completion");
+        return Ok(ExitCode::from(0));
+    }
+    let shell = args.get(2).map(|s| s.to_lowercase()).ok_or_else(|| {
+        usage_msg(ods_core::missing_required_arg(
+            "shell",
+            "ods completion <bash|zsh|fish|powershell>",
+        ))
+    })?;
 
     match shell.as_str() {
         "bash" => {
@@ -34,7 +40,7 @@ const BASH_COMPLETION: &str = r#"_ods_completions() {
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
-    opts="lint index profiles profile status aliases find tag context graph mv fmt adopt new rm archive init disable doctor sync watch logs serve export start stop share bench audit coverage setup update upgrade workspaces skill pack stats overview summary completion schema tree diff clean"
+    opts="lint index profiles profile status aliases alias find tag tags context graph mv fmt adopt new rm remove archive init enable disable revert doctor sync watch logs serve export start stop share bench sandbox audit coverage setup update upgrade workspaces skill pack stats overview summary completion schema tree diff clean read undo agents lsp"
 
     if [[ ${COMP_CWORD} -eq 1 ]] ; then
         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
@@ -69,7 +75,7 @@ _ods() {
         'sync:Synchronize git status and workspace metadata'
         'watch:Watch file system and re-lint on changes'
         'logs:View service watcher logs'
-        'serve:Run foreground language server / watcher'
+        'serve:Headless watch loop used by ods start (not the Language Server)'
         'export:Export graph visualization'
         'stats:Display workspace document telemetry and health metrics'
         'overview:Compact workspace snapshot for AI cold-start'

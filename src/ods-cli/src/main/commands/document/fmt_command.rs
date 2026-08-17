@@ -1,4 +1,8 @@
 fn run_fmt_command(args: &[String]) -> Result<ExitCode, CliError> {
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        print_command_help("fmt");
+        return Ok(ExitCode::from(0));
+    }
     let (root, _level, format) = parse_common_flags(args, 2)?;
     let extra = ods_core::parse_extra_spec_flags(args.iter().map(String::as_str))
         .map_err(|e| usage(e.message()))?;

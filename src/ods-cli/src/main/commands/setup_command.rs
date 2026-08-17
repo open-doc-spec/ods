@@ -1,69 +1,3 @@
-fn print_help() {
-    println!(
-        "ods — Open Document Spec CLI
-
-Usage:
-  ods [OPTIONS] <COMMAND> [ARGS...]
-
-Quick reference:
-  init [path]                 Initialize an ODS workspace (writes ods.toml)
-  lint [path]                 Validate workspace (prints green message when clean)
-  serve [--root <path>]       Headless watch loop (use --mode auto|watch|poll)
-  start [path]                Register and start user service (background watcher)
-  stop [path]                 Stop user service
-
-Platform & service:
-  update                      Self-update binary from GitHub Releases
-  setup [path]                Machine service + health check (see: ods setup --help)
-  workspaces                  Global workspace registry
-  skill install               Install skill into an AI agent
-  version, --version, -V      Print version and exit
-  help, --help, -h            Show this help
-
-Notes:
-  - Run `ods <command> --help` for command-specific usage, flags and examples.
-  - Global flags (shown below) apply to many commands where relevant.
-
-Common commands and short summaries:
-  profile init <name>         Scaffold custom profile (registers under custom_profiles in ods.toml)
-  profile show <name>         Show profile source, sections and key policies
-  find [path] [--tag t] [--key k] [q]
-                              Find documents by tag, key, and/or query
-  read <id>                   Read document sections / summary with token budget
-  export [path] --out PATH    Write graph under .ods/graph.md (default)
-
-Global flags:
-  --version, -V               Print version and exit
-  --format text|json|sarif    Output format for supported commands (default: text)
-  --okf                       Enable OKF v0.2 engine for this command (extra spec)
-  --skills                    Enable Agent Skills engine
-  --help, -h                  Command usage (most subcommands)
-
-Examples:
-  ods init
-  ods lint .
-  ods serve --root . --mode watch
-  ods export --out .ods/graph.md
-  ods profile init my-profile
-
-Environment:
-  ODS_AUTO_UPDATE=0           Disable auto-update (default: on)
-  ODS_LOW_MEMORY=1            serve --mode auto → poll
-  ODS_SERVE_MODE              Default serve mode for `serve`
-  ODS_POLL_SECS               Default poll interval used by serve
-  GH_TOKEN / GITHUB_TOKEN     Optional token for rate limits
-
-Guidance for maintainers:
-  - Keep command-specific usage and examples near the command implementation.
-  - Prefer `ods <cmd> --help` for detailed flags; the top-level help should be a concise entrypoint for non-technical users.
-  - Avoid duplicating long docs in both CLI and repository docs; link to external docs in the output when applicable.
-"
-    );
-}
-
-fn print_ods_help() {
-    print_help();
-}
 fn run_setup_command(args: &[String]) -> Result<ExitCode, CliError> {
     let mut path = None;
     let mut install_git_hooks = false;
@@ -72,21 +6,19 @@ fn run_setup_command(args: &[String]) -> Result<ExitCode, CliError> {
     while i < args.len() {
         match args[i].as_str() {
             "--help" | "-h" => {
-                println!(
-                    "ods setup [path] [--git-hooks] [--editor zed|vscode|nvim|cursor]\n\n\
-                     Checks release freshness, detects an ODS workspace, starts the user service when possible, and runs doctor.\n\
-                     --git-hooks   Install .git/hooks/pre-commit lint runner\n\
-                     --editor X    Write Language Server config for `ods lsp` (zed|vscode|nvim|cursor)"
-                );
+                print_command_help("setup");
                 return Ok(ExitCode::from(0));
             }
             "--git-hooks" => {
                 install_git_hooks = true;
             }
             "--editor" => {
-                let v = args
-                    .get(i + 1)
-                    .ok_or_else(|| usage_msg(ods_core::missing_flag_value("--editor", "`ods setup --editor zed|vscode|nvim|cursor`")))?;
+                let v = args.get(i + 1).ok_or_else(|| {
+                    usage_msg(ods_core::missing_flag_value(
+                        "--editor",
+                        "`ods setup --editor zed|vscode|nvim|cursor`",
+                    ))
+                })?;
                 editor = Some(v.to_lowercase());
                 i += 1;
             }
@@ -110,7 +42,9 @@ fn run_setup_command(args: &[String]) -> Result<ExitCode, CliError> {
     }
 
     if install_git_hooks {
-        let probe = path.clone().unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
+        let probe = path
+            .clone()
+            .unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
         let root = ods_core::find_workspace_root(&probe).unwrap_or(probe);
         let git_hooks_dir = root.join(".git").join("hooks");
         if git_hooks_dir.exists() {
@@ -124,7 +58,10 @@ fn run_setup_command(args: &[String]) -> Result<ExitCode, CliError> {
             }
             println!("Installed ODS pre-commit hook to {}", hook_file.display());
         } else {
-            println!("No .git/hooks directory found at {}; skipped git hook setup.", root.display());
+            println!(
+                "No .git/hooks directory found at {}; skipped git hook setup.",
+                root.display()
+            );
         }
     }
 
@@ -164,8 +101,14 @@ fn run_setup_command(args: &[String]) -> Result<ExitCode, CliError> {
                     .map(PathBuf::from)
                     .unwrap_or_else(|| PathBuf::from("."))
             };
-            println!("setup: no ODS workspace found at or above {}", probe.display());
-            println!("setup: run 'ods init {}' to make this folder ODS-compliant", target.display());
+            println!(
+                "setup: no ODS workspace found at or above {}",
+                probe.display()
+            );
+            println!(
+                "setup: run 'ods init {}' to make this folder ODS-compliant",
+                target.display()
+            );
             return Ok(ExitCode::from(0));
         }
     };
@@ -225,7 +168,10 @@ fn find_marked_ods_workspace_root(path: &Path) -> Option<PathBuf> {
     };
 
     loop {
-        if ods_core::ods_toml_enabled(&current) || current.join("index.ods.md").is_file() || current.join("index.md").is_file() {
+        if ods_core::ods_toml_enabled(&current)
+            || current.join("index.ods.md").is_file()
+            || current.join("index.md").is_file()
+        {
             return Some(current);
         }
         if current.join(".git").exists() {
@@ -275,7 +221,10 @@ fn write_editor_lsp_config(root: &Path, editor: &str) -> Result<(), CliError> {
 }
 "#;
             fs::write(&path, body).map_err(|e| fail_io("setup", e))?;
-            println!("setup: wrote {} (configure your LSP client to use path/args)", path.display());
+            println!(
+                "setup: wrote {} (configure your LSP client to use path/args)",
+                path.display()
+            );
         }
         "nvim" => {
             let dir = root.join(".nvim");

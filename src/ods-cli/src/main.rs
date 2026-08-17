@@ -7,6 +7,7 @@ mod update;
 
 // --- cli: entry + argv + exit ---
 include!("main/cli/entry.rs");
+include!("main/cli/help.rs");
 include!("main/cli/cli_arg_parser.rs");
 include!("main/cli/exit_code_helper.rs");
 

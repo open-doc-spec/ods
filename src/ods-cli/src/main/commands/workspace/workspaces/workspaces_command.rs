@@ -79,16 +79,7 @@ fn run_workspaces_command(args: &[String]) -> Result<ExitCode, CliError> {
 
     match subcommand {
         "--help" | "-h" | "help" => {
-            println!(
-                "ods workspaces <subcommand>\n\n\
-                 Manage globally tracked ODS workspaces.\n\
-                 Config file: ~/.ods/odsconfig.toml\n\n\
-                 Subcommands:\n\
-                 \x20 add [path]     Register a folder as an ODS workspace (default: current dir)\n\
-                 \x20 remove [path]  Unregister a folder (default: current dir)\n\
-                 \x20 list           List all registered workspaces\n\
-                 \x20 path           Print the machine config file path"
-            );
+            print_command_help("workspaces");
             Ok(ExitCode::from(0))
         }
         "add" => {

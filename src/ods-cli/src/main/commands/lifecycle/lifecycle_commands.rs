@@ -4,6 +4,10 @@ use ods_core::{
 };
 
 fn run_new_command(args: &[String]) -> Result<ExitCode, CliError> {
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        print_command_help("new");
+        return Ok(ExitCode::from(0));
+    }
     if args.len() < 3 {
         return Err(usage_msg(ods_core::missing_required_arg(
             "path",
@@ -58,6 +62,10 @@ fn run_new_command(args: &[String]) -> Result<ExitCode, CliError> {
 }
 
 fn run_rm_command(args: &[String]) -> Result<ExitCode, CliError> {
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        print_command_help("rm");
+        return Ok(ExitCode::from(0));
+    }
     let (_, _level, format) = parse_common_flags(args, 2)?;
     let positionals = positional_args(args, 2);
     let dry_run = args.iter().any(|a| a == "--dry-run");
@@ -122,6 +130,10 @@ fn run_rm_command(args: &[String]) -> Result<ExitCode, CliError> {
 }
 
 fn run_archive_command(args: &[String]) -> Result<ExitCode, CliError> {
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        print_command_help("archive");
+        return Ok(ExitCode::from(0));
+    }
     // Thin alias for `ods status <path-or-id> archived` (friendly archive wording).
     let target = args.get(2).map(String::as_str).unwrap_or("");
     if target.is_empty() || target.starts_with('-') {
@@ -135,11 +147,7 @@ fn run_archive_command(args: &[String]) -> Result<ExitCode, CliError> {
 
 fn run_status_command(args: &[String]) -> Result<ExitCode, CliError> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
-        println!(
-            "ods status <path-or-id> <draft|stable|deprecated|archived>\n\n\
-             Set document lifecycle status (writes nested ods.status when an ods: map exists).\n\
-             Alias: ods archive <path-or-id>  →  status archived"
-        );
+        print_command_help("status");
         return Ok(ExitCode::from(0));
     }
     let positionals = positional_args(args, 2);
@@ -321,6 +329,10 @@ fn set_frontmatter_status(fm: &str, status: &str) -> Vec<String> {
 
 /// Show background service logs under `~/.ods/logs/` (not a watch alias).
 fn run_logs_command(args: &[String]) -> Result<ExitCode, CliError> {
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        print_command_help("logs");
+        return Ok(ExitCode::from(0));
+    }
     let follow = args.iter().any(|a| a == "-f" || a == "--follow");
     let home = std::env::var("HOME")
         .or_else(|_| std::env::var("USERPROFILE"))

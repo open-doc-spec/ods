@@ -1,23 +1,6 @@
 fn run_find_command(args: &[String]) -> Result<ExitCode, CliError> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
-        println!(
-            "ods find [path] [--tag <name> ...] [--key <expr> ...] [<query>]\n\n\
-             Find documents by tag, schema/custom keys, and/or id/path/stem query.\n\n\
-             Flags:\n\
-               --tag <name>           Filter by tag (repeatable)\n\
-               --tag-match any|all    Tag intersection mode (default: any)\n\
-               --key <expr>           Filter by key/val expression (comma values, AND/OR logic)\n\
-               --key-match and|or     Key matching mode across multiple --key flags (default: and)\n\
-               --status <status>      Shortcut for --key status=<status>\n\
-               --profile <profile>    Shortcut for --key profile=<profile>\n\
-               --owner <owner>        Shortcut for --key owner=<owner>\n\
-               --format text|json     Output format (default: text)\n\n\
-             Examples:\n\
-               ods find --tag caching\n\
-               ods find --key status=draft,stable\n\
-               ods find --key \"status=draft AND owner=alice\"\n\
-               ods find --key \"team=infra,frontend\" --format json\n"
-        );
+        print_command_help("find");
         return Ok(ExitCode::from(0));
     }
     let (root, _level, format) = parse_common_flags(args, 2)?;

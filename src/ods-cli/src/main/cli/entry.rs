@@ -1,27 +1,26 @@
 use ods_core::{
-    AdoptOptions, Diagnostic, DisableOptions, FrontmatterState, InitOptions, LintLevel, Severity,
-    WatchTree, Workspace, adopt_workspace, apply_document_removes,
-    apply_document_upserts, apply_path_changes,
+    adopt_workspace, apply_document_removes, apply_document_upserts, apply_path_changes,
     canonicalize_workspace_document_refs_with_workspace, disable_workspace, docs_with_all_tags,
-    docs_with_any_tag,
-    export_workspace_graph, heal_orphan_path_ids,
-    init_workspace, known_profiles, lint_workspace_with_level, lint_workspace_with_ref_style,
-    load_options_graph, load_profile_catalog, load_workspace, load_workspace_with_options,
+    docs_with_any_tag, export_workspace_graph, heal_orphan_path_ids, init_workspace,
+    known_profiles, lint_workspace_with_level, lint_workspace_with_ref_style, load_options_graph,
+    load_profile_catalog, load_workspace, load_workspace_with_options,
     migrate_workspace_frontmatter_with_workspace, move_document_and_rewrite_refs_report,
     normalize_workspace_frontmatter_spacing_with_workspace, observe_renames, paired_from_paths,
     parse_paths_parallel, rename_tag_in_workspace, scan_markdown_tree_with_code_paths,
-    tag_usage_with_builtins, workspace_alias_suggestions, workspace_aliases,
+    tag_usage_with_builtins, workspace_alias_suggestions, workspace_aliases, AdoptOptions,
+    Diagnostic, DisableOptions, FrontmatterState, InitOptions, LintLevel, Severity, WatchTree,
+    Workspace,
 };
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode};
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::mpsc::{RecvTimeoutError, channel};
+use std::sync::mpsc::{channel, RecvTimeoutError};
 use std::sync::Arc;
 use std::time::Duration;
 use update::{
-    UpdateOptions, UpdateOutcome, maybe_auto_update, maybe_auto_update_on_watch, run_update,
+    maybe_auto_update, maybe_auto_update_on_watch, run_update, UpdateOptions, UpdateOutcome,
 };
 
 fn main() -> ExitCode {
@@ -162,12 +161,8 @@ fn is_ods_document_command(cmd: &str) -> bool {
 }
 
 fn run(args: Vec<String>) -> Result<ExitCode, CliError> {
-    if args.get(1).map(String::as_str) == Some("help")
-        || args.get(1).map(String::as_str) == Some("--help")
-        || args.get(1).map(String::as_str) == Some("-h")
-    {
-        print_help();
-        return Ok(ExitCode::from(0));
+    if let Some(handled) = try_print_cli_help(&args) {
+        return handled;
     }
 
     let Some(first) = args.get(1).map(String::as_str) else {

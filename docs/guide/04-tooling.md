@@ -9,6 +9,8 @@ ods:
 
 Reference implementation: the single native **`ods` CLI**. ODS is the default engine (no `--ods` flag). Extra specs use flags only: `--okf`, `--skills`. Editor support is built in via **`ods lsp`** (JSON-RPC over stdio; not the same as `ods serve`).
 
+In the terminal, `ods` / `ods --help` lists every command by task. `ods help <command>` (or `ods <command> --help`) prints usage, arguments, flags, and examples.
+
 ---
 
 ## Production Checklist

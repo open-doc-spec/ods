@@ -5,6 +5,10 @@ fn run_update_command(args: &[String]) -> Result<ExitCode, CliError> {
     let mut i = 2;
     while i < args.len() {
         match args[i].as_str() {
+            "--help" | "-h" => {
+                print_command_help("update");
+                return Ok(ExitCode::from(0));
+            }
             "--check" => {
                 check_only = true;
                 i += 1;

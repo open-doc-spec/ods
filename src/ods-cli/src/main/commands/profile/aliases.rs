@@ -2,12 +2,7 @@ fn run_aliases_command(args: &[String]) -> Result<ExitCode, CliError> {
     let sub = args.get(2).map(String::as_str).unwrap_or("list");
     match sub {
         "--help" | "-h" => {
-            println!(
-                "ods aliases [list] [path]\n\
-                 ods alias add <Canonical> <Synonym> [path]\n\n\
-                 Section-heading aliases for profile section matching (declared in root ods.toml [aliases]).\n\
-                 Standard profiles also ship builtin alternatives (e.g. Goal | Objective)."
-            );
+            print_command_help("aliases");
             Ok(ExitCode::from(0))
         }
         "add" => run_alias_add_command(args),

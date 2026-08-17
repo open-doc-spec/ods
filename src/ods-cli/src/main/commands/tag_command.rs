@@ -1,12 +1,6 @@
 fn run_tag_command(args: &[String]) -> Result<ExitCode, CliError> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
-        println!(
-            "ods tag <subcommand> [flags]\n\n\
-             Subcommands:\n\
-               ods tag list [path] [--format text|json]          List observed tags in workspace\n\
-               ods tag show [path] <tag> [--format text|json]    Show documents with a tag\n\
-               ods tag rename [path] <old> <new> [--write]      Rename tag across workspace\n"
-        );
+        print_command_help("tag");
         return Ok(ExitCode::from(0));
     }
     let sub = args
