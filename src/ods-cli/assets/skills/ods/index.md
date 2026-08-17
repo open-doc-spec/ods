@@ -1,5 +1,12 @@
 ---
-profile: index
+description: "ODS skill root navigation index."
+tags:
+  - skill
+  - ods
+owner: team:ods
+ods:
+  profile: note
+  status: stable
 ---
 
 # ods

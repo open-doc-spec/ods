@@ -1,3 +1,15 @@
+---
+description: "Configuration guide for the native ODS JSON-RPC 2.0 Language Server (ods lsp)."
+tags:
+  - lsp
+  - editor
+  - ide
+owner: team:ods
+ods:
+  profile: guide
+  status: stable
+---
+
 # ODS Editor JSON-RPC Language Server Reference (`ods lsp`)
 
 The Open Document Spec (`ods`) CLI includes a native **JSON-RPC 2.0 Language Server** subcommand: `ods lsp`.

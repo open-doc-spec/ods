@@ -1,5 +1,13 @@
 ---
 description: "ODS skill references catalog — self-documenting CLI discovery & editor setup."
+tags:
+  - skill
+  - ods
+  - reference
+owner: team:ods
+ods:
+  profile: note
+  status: stable
 ---
 
 # ODS Skill References
