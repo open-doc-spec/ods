@@ -31,8 +31,9 @@ fn installs_complete_bundles_for_skill_agents() {
         let installed = directory.path().join(expected_directory);
         assert!(installed.join("SKILL.md").is_file());
         assert!(installed.join("scripts/bootstrap.sh").is_file());
-        assert!(installed.join("references/keys.md").is_file());
-        assert!(installed.join("references/intro.md").is_file());
+        assert!(installed.join("references/index.md").is_file());
+        assert!(installed.join("references/cli-recipes.md").is_file());
+        assert!(installed.join("references/token-economy.md").is_file());
         assert!(
             !installed.join("evals/evals.json").exists(),
             "evals should not be installed into agent hosts (token waste)"

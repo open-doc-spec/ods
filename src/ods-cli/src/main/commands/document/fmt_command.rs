@@ -1,4 +1,18 @@
 fn run_fmt_command(args: &[String]) -> Result<ExitCode, CliError> {
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        println!("ods fmt — Normalize YAML frontmatter spacing, document references, and key layout");
+        println!();
+        println!("Usage:");
+        println!("  ods fmt [root] [flags]");
+        println!();
+        println!("Flags:");
+        println!("  --migrate               Rewrite misplaced/flat frontmatter keys into canonical 3-tier layout");
+        println!("  --refs md-paths         Canonicalize document references to relative .md paths");
+        println!("  --format <text|json>    Output format (default: text)");
+        println!("  --okf                   Format Google OKF bundle");
+        return Ok(ExitCode::from(0));
+    }
+
     let (root, _level, format) = parse_common_flags(args, 2)?;
     let extra = ods_core::parse_extra_spec_flags(args.iter().map(String::as_str))
         .map_err(|e| usage(e.message()))?;
@@ -255,5 +269,13 @@ mod test_fmt_command {
         assert!(res.is_ok());
         let a = fs::read_to_string(root.join("a.md")).unwrap();
         assert!(a.contains("b.md") || a.contains("depends:"), "{a}");
+    }
+
+    #[test]
+    fn fmt_help_flag_prints_usage() {
+        let res = run_fmt_command(&["ods".into(), "fmt".into(), "--help".into()]);
+        assert!(res.is_ok());
+        let res_h = run_fmt_command(&["ods".into(), "fmt".into(), "-h".into()]);
+        assert!(res_h.is_ok());
     }
 }
