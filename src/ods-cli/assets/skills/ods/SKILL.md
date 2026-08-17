@@ -9,7 +9,7 @@ description: >-
   ODS is the default native CLI engine (never use --ods). Supports extra specs: --okf (Google OKF v0.2)
   and --skills (Agent Skills).
 metadata:
-  version: "0.0.25"
+  version: "0.1.0"
 tags:
   - skill
   - ods
