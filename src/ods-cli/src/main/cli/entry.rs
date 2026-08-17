@@ -7,9 +7,8 @@ use ods_core::{
     migrate_workspace_frontmatter_with_workspace, move_document_and_rewrite_refs_report,
     normalize_workspace_frontmatter_spacing_with_workspace, observe_renames, paired_from_paths,
     parse_paths_parallel, rename_tag_in_workspace, scan_markdown_tree_with_code_paths,
-    tag_usage_with_builtins, workspace_alias_suggestions, workspace_aliases, AdoptOptions,
-    Diagnostic, DisableOptions, FrontmatterState, InitOptions, LintLevel, Severity, WatchTree,
-    Workspace,
+    tag_usage_with_builtins, AdoptOptions, Diagnostic, DisableOptions, FrontmatterState,
+    InitOptions, LintLevel, Severity, WatchTree, Workspace,
 };
 use std::env;
 use std::fs;
@@ -114,8 +113,6 @@ fn is_ods_document_command(cmd: &str) -> bool {
             | "index"
             | "profiles"
             | "profile"
-            | "alias"
-            | "aliases"
             | "tags"
             | "find"
             | "tag"

@@ -118,12 +118,12 @@ fn full_lint_reports_dangling() {
 }
 
 #[test]
-fn aliases_on_non_root_warn() {
+fn guide_with_synonym_heading_emits_missing_section_warning() {
     let dir = temp_workspace();
     write_root(&dir, "- [a.md](a.md)\n");
     fs::write(
         dir.join("a.md"),
-        "---\nprofile: note\nstatus: draft\naliases:\n  Goal:\n    - Mission\n---\n\n# A\n",
+        "---\nprofile: guide\nstatus: draft\n---\n\n# A\n\n## Introduction\n\n## Prerequisites\n\n## Steps\n\n## Troubleshooting\n",
     )
     .unwrap();
     let ws = load_workspace(&dir).unwrap();
@@ -131,7 +131,7 @@ fn aliases_on_non_root_warn() {
     assert!(
         diags
             .iter()
-            .any(|d| d.message.contains("ods.toml") || d.message.contains("aliases")),
+            .any(|d| d.message.contains("missing expected section: Overview")),
         "{diags:?}"
     );
 }

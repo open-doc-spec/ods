@@ -22,105 +22,11 @@ pub fn profile_sections(workspace: &Workspace, profile: &str) -> Vec<Vec<String>
         .unwrap_or_default()
 }
 
-pub fn workspace_aliases(workspace: &Workspace) -> BTreeMap<String, BTreeSet<String>> {
-    let mut aliases = BTreeMap::new();
-    for (canonical, values) in &workspace.config.aliases {
-        aliases
-            .entry(canonical.clone())
-            .or_insert_with(BTreeSet::new)
-            .extend(values.iter().cloned());
-    }
-    aliases
-}
-
 pub fn profile_section_labels(workspace: &Workspace, profile: &str) -> Vec<String> {
-    let aliases = workspace_aliases(workspace);
-    let mut labels = BTreeSet::new();
-
-    for group in profile_sections(workspace, profile) {
-        if let Some(canonical) = group.first() {
-            labels.insert(canonical.clone());
-            if let Some(extra) = aliases.get(canonical) {
-                labels.extend(extra.iter().cloned());
-            }
-            labels.extend(group.iter().skip(1).cloned());
-        }
-    }
-
-    labels.into_iter().collect()
-}
-
-pub fn workspace_alias_suggestions(workspace: &Workspace) -> BTreeMap<String, BTreeSet<String>> {
-    let aliases = workspace_aliases(workspace);
-    let mut suggestions = BTreeMap::<String, BTreeSet<String>>::new();
-
-    for document in &workspace.documents {
-        let Some(frontmatter) = frontmatter(document) else {
-            continue;
-        };
-
-        let profile = frontmatter.profile.as_deref().unwrap_or("note");
-        let expected = profile_sections(workspace, profile);
-        if expected.is_empty() {
-            continue;
-        }
-
-        let heading_data = document
-            .headings
-            .iter()
-            .map(|heading| (heading.clone(), normalize_heading(heading)))
-            .collect::<Vec<_>>();
-
-        let mut matched_groups = BTreeSet::<String>::new();
-        let mut all_expected = BTreeSet::<String>::new();
-        for group in &expected {
-            if let Some(canonical) = group.first() {
-                all_expected.insert(canonical.clone());
-                let mut accepted = group
-                    .iter()
-                    .map(|heading| normalize_heading(heading))
-                    .collect::<BTreeSet<_>>();
-                if let Some(extra) = aliases.get(canonical) {
-                    accepted.extend(extra.iter().map(|alias| normalize_heading(alias)));
-                }
-
-                if heading_data
-                    .iter()
-                    .any(|(_, normalized)| accepted.contains(normalized))
-                {
-                    matched_groups.insert(canonical.clone());
-                }
-            }
-        }
-
-        let missing = all_expected
-            .iter()
-            .filter(|canonical| !matched_groups.contains(*canonical))
-            .collect::<Vec<_>>();
-
-        let unmatched = heading_data
-            .iter()
-            .filter(|(_, normalized)| {
-                !expected.iter().any(|group| {
-                    let accepted = group
-                        .iter()
-                        .map(|heading| normalize_heading(heading))
-                        .collect::<BTreeSet<_>>();
-                    accepted.contains(normalized)
-                })
-            })
-            .map(|(heading, _)| heading.clone())
-            .collect::<Vec<_>>();
-
-        if missing.len() == 1 && unmatched.len() == 1 {
-            suggestions
-                .entry((*missing[0]).clone())
-                .or_default()
-                .insert(unmatched[0].clone());
-        }
-    }
-
-    suggestions
+    profile_sections(workspace, profile)
+        .into_iter()
+        .filter_map(|group| group.into_iter().next())
+        .collect()
 }
 
 pub fn lint_workspace(workspace: &Workspace) -> Vec<Diagnostic> {
@@ -278,14 +184,8 @@ mod test_checker {
         let secs = profile_sections(&ws, "note");
         assert!(secs.is_empty() || !secs.is_empty());
 
-        let aliases = workspace_aliases(&ws);
-        assert!(aliases.is_empty());
-
         let labels = profile_section_labels(&ws, "note");
         assert!(labels.is_empty() || !labels.is_empty());
-
-        let sug = workspace_alias_suggestions(&ws);
-        assert!(sug.is_empty());
 
         let conflicts = lint_profile_conflicts(&ws);
         assert!(conflicts.is_empty());

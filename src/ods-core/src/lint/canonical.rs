@@ -168,7 +168,6 @@ fn lint_document(
                 });
             }
 
-            diagnostics.extend(lint_alias_scope(workspace, document, frontmatter));
             diagnostics.extend(lint_ods_scope(workspace, document, frontmatter));
             diagnostics.extend(crate::tags::lint_document_tags(document, workspace));
 
@@ -216,7 +215,6 @@ fn required_key_is_present(frontmatter: &crate::model::Frontmatter, key: &str) -
         "owner" => frontmatter.owner.is_some(),
         "tags" => frontmatter.non_null_keys.contains("tags") && !frontmatter.tags_misplaced,
         "ods" => frontmatter.ods.is_some(),
-        "aliases" => frontmatter.non_null_keys.contains("aliases"),
         "ignore" => frontmatter.non_null_keys.contains("ignore"),
         "name" => frontmatter.name.is_some(),
         "title" => frontmatter.title.is_some(),
@@ -306,8 +304,7 @@ fn lint_profile_sections(
     document: &Document,
     profile: &str,
 ) -> Vec<Diagnostic> {
-    let aliases = workspace_aliases(workspace);
-    lint_profile_sections_with_aliases(document, workspace, profile, &aliases)
+    lint_profile_sections_direct(document, workspace, profile)
 }
 
 fn is_valid_date_str(s: &str) -> bool {

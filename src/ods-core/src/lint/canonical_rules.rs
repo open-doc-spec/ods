@@ -105,20 +105,4 @@ pub(super) fn lint_ods_scope(
     }]
 }
 
-pub(super) fn lint_alias_scope(
-    _workspace: &Workspace,
-    document: &Document,
-    frontmatter: &crate::model::Frontmatter,
-) -> Vec<Diagnostic> {
-    if frontmatter.aliases.is_empty() {
-        return Vec::new();
-    }
-
-    vec![Diagnostic {
-        path: document.path.clone(),
-        severity: Severity::Warning,
-        message: crate::error::lint_aliases_root_only(),
-    }]
-}
-
 

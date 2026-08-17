@@ -1,7 +1,6 @@
 use crate::model::{
     CodeRef, CodeRole, ContextSpec, Document, Frontmatter, FrontmatterState, ResourceRef,
 };
-use std::collections::BTreeMap;
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
@@ -295,12 +294,6 @@ fn parse_frontmatter(block: &str) -> Result<Frontmatter, String> {
                 let (context, next) = parse_context(&lines, index, 2)?;
                 frontmatter.context = Some(context);
                 mark_non_null_key(&mut frontmatter, "context", rest, index, next);
-                index = next;
-            }
-            "aliases" => {
-                let (aliases, next) = parse_aliases(&lines, index, 2);
-                frontmatter.aliases.extend(aliases);
-                mark_non_null_key(&mut frontmatter, "aliases", rest, index, next);
                 index = next;
             }
             "specs" => {

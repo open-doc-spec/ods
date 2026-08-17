@@ -58,7 +58,6 @@ const COMMANDS: &[&str] = &[
     "revert",
     "profile",
     "profiles",
-    "aliases",
     "start",
     "stop",
     "serve",

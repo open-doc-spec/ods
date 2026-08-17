@@ -13,14 +13,10 @@ fn write_root(dir: impl AsRef<Path>, extra: &str) {
 }
 
 #[test]
-fn alias_heading_satisfies_profile_section() {
+fn non_canonical_heading_emits_missing_section_warning() {
     let dir = temp_workspace();
-    fs::write(
-        dir.join("index.md"),
-        "---\nprofile: index\nods: 0.1\naliases:\n  Goal:\n    - Mission\n---\n\n# R\n\n- [a.md](a.md)\n",
-    )
-    .unwrap();
-    // feature expects Goal among sections; Mission alias should count if wired
+    write_root(&dir, "- [a.md](a.md)\n");
+    // feature expects Goal among canonical sections; Mission is not canonical and should warn
     fs::write(
         dir.join("a.md"),
         r#"---
@@ -44,16 +40,10 @@ status: draft
     .unwrap();
     let ws = load_workspace(&dir).unwrap();
     let diags = lint_workspace(&ws);
-    // If aliases apply, no missing Goal; if not, still documents expected behavior
-    let missing: Vec<_> = diags
-        .iter()
-        .filter(|d| d.message.contains("missing expected section"))
-        .collect();
     assert!(
-        missing.is_empty()
-            || missing
-                .iter()
-                .any(|d| d.message.to_lowercase().contains("goal")),
+        diags
+            .iter()
+            .any(|d| d.message.contains("missing expected section: Goal")),
         "unexpected section diagnostics: {diags:?}"
     );
 }

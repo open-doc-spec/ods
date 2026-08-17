@@ -23,7 +23,6 @@ fn canonical_help_command(name: &str) -> &str {
     match name {
         "summary" => "overview",
         "profiles" => "profile",
-        "alias" => "aliases",
         "remove" => "rm",
         "enable" => "init",
         "revert" => "disable",
@@ -69,7 +68,6 @@ fn command_help_text(name: &str) -> Option<&'static str> {
         "clean" => HELP_CLEAN,
         "disable" => HELP_DISABLE,
         "profile" => HELP_PROFILE,
-        "aliases" => HELP_ALIASES,
         "start" => HELP_START,
         "stop" => HELP_STOP,
         "serve" => HELP_SERVE,
@@ -104,8 +102,6 @@ fn command_accepts_help_subcommand(cmd: &str) -> bool {
             | "profiles"
             | "tag"
             | "bench"
-            | "alias"
-            | "aliases"
     )
 }
 
@@ -202,7 +198,6 @@ Profiles:
   profile list                List loaded profiles (alias: ods profiles)
   profile init <name>         Scaffold a custom profile
   profile show <name>         Show keys and sections
-  aliases                     Section-heading aliases (also: alias add)
 
 Automation:
   start [path]                Register and start the background watcher
@@ -1151,34 +1146,7 @@ Examples:
   ods profile show note
 
 See also:
-  ods aliases, ods new --profile
-";
-
-const HELP_ALIASES: &str = "\
-ods aliases — section-heading aliases
-
-Usage:
-  ods aliases [list] [path]
-  ods alias add <Canonical> <Synonym> [path]
-
-Description:
-  Heading aliases used when matching profile sections (ods.toml [aliases]).
-  Standard profiles also ship builtins (for example Goal | Objective).
-
-Subcommands:
-  list                        Show declared aliases (default)
-  add <Canonical> <Synonym>   Add an alias in ods.toml
-
-Options:
-  --format text|json          Output format for list
-  --help, -h                  Show this help
-
-Examples:
-  ods aliases
-  ods alias add Goal Objective
-
-See also:
-  ods profile show
+  ods new --profile
 ";
 
 const HELP_START: &str = "\
@@ -1636,7 +1604,6 @@ mod test_help_catalog {
         "clean",
         "disable",
         "profile",
-        "aliases",
         "start",
         "stop",
         "serve",
@@ -1674,7 +1641,6 @@ mod test_help_catalog {
         assert_eq!(canonical_help_command("enable"), "init");
         assert_eq!(canonical_help_command("revert"), "disable");
         assert_eq!(canonical_help_command("sandbox"), "bench");
-        assert_eq!(canonical_help_command("alias"), "aliases");
         assert!(print_command_help("summary"));
         assert!(!print_command_help("not-a-real-command"));
     }
@@ -1737,8 +1703,6 @@ mod test_help_catalog {
             "profiles",
             "tag",
             "bench",
-            "alias",
-            "aliases",
         ] {
             assert!(command_accepts_help_subcommand(cmd), "{cmd}");
         }
@@ -1752,7 +1716,6 @@ mod test_help_catalog {
         for alias in [
             "summary",
             "profiles",
-            "alias",
             "remove",
             "enable",
             "revert",
@@ -1782,8 +1745,6 @@ mod test_help_catalog {
             vec!["ods".into(), "profiles".into(), "help".into()],
             vec!["ods".into(), "tag".into(), "help".into()],
             vec!["ods".into(), "bench".into(), "help".into()],
-            vec!["ods".into(), "alias".into(), "help".into()],
-            vec!["ods".into(), "aliases".into(), "help".into()],
             vec!["ods".into(), "agents".into(), "help".into()],
             vec!["ods".into(), "workspaces".into(), "help".into()],
             vec!["ods".into(), "lint".into(), "-h".into()],
@@ -1895,6 +1856,5 @@ mod test_help_catalog {
         assert!(
             run_workspaces_command(&["ods".into(), "workspaces".into(), "--help".into()]).is_ok()
         );
-        assert!(run_aliases_command(&["ods".into(), "alias".into(), "--help".into()]).is_ok());
     }
 }

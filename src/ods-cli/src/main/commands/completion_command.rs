@@ -40,7 +40,7 @@ const BASH_COMPLETION: &str = r#"_ods_completions() {
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
-    opts="lint index profiles profile status aliases alias find tag tags context graph mv fmt adopt new rm remove archive init enable disable revert doctor sync watch logs serve export start stop share bench sandbox audit coverage setup update upgrade workspaces skill pack stats overview summary completion schema tree diff clean read undo agents lsp"
+    opts="lint index profiles profile status find tag tags context graph mv fmt adopt new rm remove archive init enable disable revert doctor sync watch logs serve export start stop share bench sandbox audit coverage setup update upgrade workspaces skill pack stats overview summary completion schema tree diff clean read undo agents lsp"
 
     if [[ ${COMP_CWORD} -eq 1 ]] ; then
         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
@@ -58,7 +58,6 @@ _ods() {
         'index:OKF only: generate or check OKF navigation indexes (ods index --okf)'
         'profiles:List or initialize document profile schemas'
         'status:Set document lifecycle status (draft|stable|deprecated|archived)'
-        'aliases:List or add section-heading aliases'
         'find:Find documents by tag, profile, or query'
         'tag:Tag management and workspace-wide tag renaming'
         'context:Resolve bounded context for a target document'
@@ -105,7 +104,7 @@ complete -c ods -n "__fish_use_subcommand" -a "clean" -d "Clean diagnostic repor
 
 const POWERSHELL_COMPLETION: &str = r#"Register-ArgumentCompleter -Native -CommandName ods -ScriptBlock {
     param($wordToComplete, $commandAst, $cursorPosition)
-    $commands = @('lint', 'index', 'profiles', 'status', 'aliases', 'find', 'tag', 'context', 'graph', 'mv', 'fmt', 'adopt', 'new', 'rm', 'archive', 'init', 'disable', 'doctor', 'sync', 'watch', 'logs', 'serve', 'export', 'stats', 'overview', 'summary', 'completion', 'schema', 'tree', 'diff', 'clean')
+    $commands = @('lint', 'index', 'profiles', 'status', 'find', 'tag', 'context', 'graph', 'mv', 'fmt', 'adopt', 'new', 'rm', 'archive', 'init', 'disable', 'doctor', 'sync', 'watch', 'logs', 'serve', 'export', 'stats', 'overview', 'summary', 'completion', 'schema', 'tree', 'diff', 'clean')
     $commands | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object {
         [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
     }

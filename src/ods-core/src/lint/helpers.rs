@@ -1,8 +1,7 @@
-fn lint_profile_sections_with_aliases(
+fn lint_profile_sections_direct(
     document: &Document,
     workspace: &Workspace,
     profile: &str,
-    workspace_aliases: &BTreeMap<String, BTreeSet<String>>,
 ) -> Vec<Diagnostic> {
     let expected = profile_sections(workspace, profile);
     if expected.is_empty() {
@@ -17,24 +16,15 @@ fn lint_profile_sections_with_aliases(
 
     expected
         .iter()
-        .filter(|group| {
-            let mut accepted = group
-                .iter()
-                .map(|heading| normalize_heading(heading))
-                .collect::<BTreeSet<_>>();
-
-            if let Some(canonical) = group.first()
-                && let Some(values) = workspace_aliases.get(canonical)
-            {
-                accepted.extend(values.iter().map(|alias| normalize_heading(alias)));
-            }
-
-            !headings.iter().any(|heading| accepted.contains(heading))
+        .filter_map(|group| group.first())
+        .filter(|canonical| {
+            let normalized = normalize_heading(canonical);
+            !headings.contains(&normalized)
         })
-        .map(|group| Diagnostic {
+        .map(|canonical| Diagnostic {
             path: document.path.clone(),
             severity: Severity::Warning,
-            message: crate::error::lint_missing_expected_section(&group[0]),
+            message: crate::error::lint_missing_expected_section(canonical),
         })
         .collect()
 }

@@ -260,4 +260,12 @@ mod test_fmt_command {
         let a = fs::read_to_string(root.join("a.md")).unwrap();
         assert!(a.contains("b.md") || a.contains("depends:"), "{a}");
     }
+
+    #[test]
+    fn fmt_help_flag_prints_usage() {
+        let res = run_fmt_command(&["ods".into(), "fmt".into(), "--help".into()]);
+        assert!(res.is_ok());
+        let res_h = run_fmt_command(&["ods".into(), "fmt".into(), "-h".into()]);
+        assert!(res_h.is_ok());
+    }
 }

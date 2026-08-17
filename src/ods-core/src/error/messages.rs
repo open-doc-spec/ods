@@ -720,11 +720,7 @@ pub fn lint_context_ignore_not_found(ignore: &str) -> String {
 }
 
 pub fn lint_root_ods_scope_only() -> String {
-    "workspace policy keys (spec, ignore, packs, aliases, specs) belong in root ods.toml, not document frontmatter".into()
-}
-
-pub fn lint_aliases_root_only() -> String {
-    "workspace aliases should be declared in root ods.toml under [aliases]".into()
+    "workspace policy keys (spec, ignore, packs, specs) belong in root ods.toml, not document frontmatter".into()
 }
 
 pub fn lint_invalid_date(field: &str, value: &str) -> String {
@@ -828,8 +824,6 @@ pub const KNOWN_COMMANDS: &[&str] = &[
     "index",
     "profile",
     "profiles",
-    "alias",
-    "aliases",
     "tags",
     "find",
     "tag",
@@ -994,9 +988,7 @@ mod tests {
         assert!(!s.contains("index.ods.md"), "{s}");
         assert!(s.contains("ods init"), "{s}");
         assert!(lint_root_ods_scope_only().contains("ods.toml"));
-        assert!(lint_aliases_root_only().contains("ods.toml"));
         assert!(!lint_root_ods_scope_only().contains("index.ods.md"));
-        assert!(!lint_aliases_root_only().contains("index.ods.md"));
     }
 
     #[test]

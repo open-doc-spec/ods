@@ -55,7 +55,6 @@ Happy path: [Quickstart Guide](/docs/quickstart).
 | `ods profiles [path]` | 📋 **Tier 3: Power User** | List standard and custom profiles loaded in workspace and report schema conflicts. |
 | `ods profile init <name>` | 📋 **Tier 3: Power User** | Scaffold `.ods/profiles/<name>.md` and **register** under root `custom_profiles (ods.toml):` (use `--no-register` to skip). |
 | `ods profile show <name>` | 📋 **Tier 3: Power User** | Show profile layer, source, sections, and required/optional/forbidden keys. |
-| `ods aliases` / `ods alias add` | 📋 **Tier 3: Power User** | List or add **section-heading** aliases in root `ods.toml` `[aliases]`. |
 | `ods tags [path]` | 📋 **Tier 3: Power User** | List **top-level** document tags with counts (`--all` includes default unused tags). Tags must not live under `ods:`. |
 | `ods tag list` / `ods tag show <tag>` | 📋 **Tier 3: Power User** | Observed tags with counts or docs for one tag (`--format text\|json`). Complements `ods tags` (which can include unused builtins via `--all`). |
 | `ods tag rename <old> <new>` | 📋 **Tier 3: Power User** | Workspace-wide top-level tag rename (dry-run; `--write`). |

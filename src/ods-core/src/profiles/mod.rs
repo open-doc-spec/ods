@@ -252,7 +252,7 @@ fn profile_definition_from_document(document: &Document) -> Option<ProfileDefini
     let mut required_keys = Vec::new();
     let mut optional_keys = Vec::new();
     let mut forbidden_keys = Vec::new();
-    let mut sections = extract_heading_groups(&document.body);
+    let sections = extract_heading_groups(&document.body);
 
     if let FrontmatterState::Parsed(frontmatter) = &document.frontmatter {
         if let Some(definition) = &frontmatter.custom_profile {
@@ -262,26 +262,6 @@ fn profile_definition_from_document(document: &Document) -> Option<ProfileDefini
             required_keys.clone_from(&definition.required_keys);
             optional_keys.clone_from(&definition.optional_keys);
             forbidden_keys.clone_from(&definition.forbidden_keys);
-        }
-        for (canonical, aliases) in &frontmatter.aliases {
-            if let Some(group) = sections
-                .iter_mut()
-                .find(|group| group.first() == Some(canonical))
-            {
-                for alias in aliases {
-                    if !group.contains(alias) {
-                        group.push(alias.clone());
-                    }
-                }
-            } else {
-                let mut group = vec![canonical.clone()];
-                for alias in aliases {
-                    if !group.contains(alias) {
-                        group.push(alias.clone());
-                    }
-                }
-                sections.push(group);
-            }
         }
     }
 
@@ -314,144 +294,103 @@ fn standard_profile_definitions() -> Vec<ProfileDefinition> {
         profile(
             "agent",
             vec![
-                section(&["Goal", "Objective", "Purpose"]),
-                section(&["Task", "Work", "Assignment"]),
-                section(&["Scope", "In Scope", "Boundaries"]),
-                section(&["Non-Scope", "Out of Scope", "Exclusions"]),
-                section(&["Context", "Background"]),
-                section(&["Inputs", "Source Material"]),
-                section(&["Constraints", "Rules", "Limits"]),
-                section(&["Priority", "Order"]),
-                section(&["Steps", "Workflow", "Procedure", "Process"]),
-                section(&["Output", "Deliverable", "Result"]),
-                section(&[
-                    "Success Criteria",
-                    "Acceptance Criteria",
-                    "Done When",
-                    "Definition of Done",
-                ]),
-                section(&["Failure Modes", "Risks", "Edge Cases", "Fallbacks"]),
-                section(&["Dependencies", "Prerequisites", "Blockers"]),
-                section(&["Assumptions", "Unknowns"]),
-                section(&["Examples", "Sample", "Examples"]),
+                "Goal",
+                "Task",
+                "Scope",
+                "Non-Scope",
+                "Context",
+                "Inputs",
+                "Constraints",
+                "Priority",
+                "Steps",
+                "Output",
+                "Success Criteria",
+                "Failure Modes",
+                "Dependencies",
+                "Assumptions",
+                "Examples",
+            ],
+        ),
+        profile(
+            "skill",
+            vec![
+                "Purpose",
+                "Capability",
+                "Activation",
+                "Scope",
+                "Non-Scope",
+                "Inputs",
+                "Outputs",
+                "Workflow",
+                "Rules",
+                "Priority",
+                "Validation",
+                "Eval",
+                "Resources",
+                "Tools",
+                "Lifecycle",
+                "Traceability",
             ],
         ),
         profile(
             "feature",
             vec![
-                section(&["Goal", "Objective", "Objectives", "Purpose"]),
-                section(&["Scope", "In Scope", "Boundaries"]),
-                section(&["Requirements", "Functional Requirements", "Needs"]),
-                section(&[
-                    "Acceptance Criteria",
-                    "Acceptance",
-                    "Success Criteria",
-                    "Definition of Done",
-                ]),
-                section(&["Risks", "Risks and Mitigations", "Concerns"]),
+                "Goal",
+                "Scope",
+                "Requirements",
+                "Acceptance Criteria",
+                "Risks",
             ],
         ),
         profile(
             "guide",
-            vec![
-                section(&["Overview", "Introduction", "Summary", "Background"]),
-                section(&["Prerequisites", "Requirements", "Before You Begin"]),
-                section(&["Steps", "Instructions", "Procedure", "Process"]),
-                section(&["Troubleshooting", "Common Issues", "FAQ"]),
-            ],
+            vec!["Overview", "Prerequisites", "Steps", "Troubleshooting"],
         ),
         profile(
             "api",
-            vec![
-                section(&["Overview", "Introduction", "Summary", "Background"]),
-                section(&["Request"]),
-                section(&["Response"]),
-                section(&["Errors"]),
-                section(&["Examples"]),
-            ],
+            vec!["Overview", "Request", "Response", "Errors", "Examples"],
         ),
         profile(
             "architecture",
-            vec![
-                section(&["Overview", "Introduction", "Summary", "Background"]),
-                section(&["Components"]),
-                section(&["Data Flow"]),
-                section(&["Trade-offs", "Tradeoffs", "Pros and Cons"]),
-            ],
+            vec!["Overview", "Components", "Data Flow", "Trade-offs"],
         ),
         profile(
             "decision",
-            vec![
-                section(&["Context", "Background"]),
-                section(&["Decision"]),
-                section(&["Alternatives", "Options", "Options Considered"]),
-                section(&["Consequences", "Outcome", "Implications"]),
-            ],
+            vec!["Context", "Decision", "Alternatives", "Consequences"],
         ),
         profile(
             "sop",
             vec![
-                section(&["Purpose"]),
-                section(&["Prerequisites", "Requirements", "Before You Begin"]),
-                section(&["Steps", "Instructions", "Procedure", "Process"]),
-                section(&["Validation", "Verification", "Checks"]),
-                section(&["Rollback", "Recovery", "Revert"]),
+                "Purpose",
+                "Prerequisites",
+                "Steps",
+                "Validation",
+                "Rollback",
             ],
         ),
-        profile(
-            "policy",
-            vec![
-                section(&["Purpose"]),
-                section(&["Scope"]),
-                section(&["Rules", "Standards", "Requirements"]),
-                section(&["Exceptions"]),
-            ],
-        ),
+        profile("policy", vec!["Purpose", "Scope", "Rules", "Exceptions"]),
         profile(
             "meeting",
-            vec![
-                section(&["Attendees"]),
-                section(&["Agenda"]),
-                section(&["Decisions"]),
-                section(&["Action Items", "Actions", "Next Steps", "TODO"]),
-            ],
+            vec!["Attendees", "Agenda", "Decisions", "Action Items"],
         ),
         profile("faq", vec![]),
         profile(
             "checklist",
-            vec![
-                section(&["Overview", "Purpose", "Introduction", "Summary"]),
-                section(&["Items", "Checklist", "Tasks", "Steps"]),
-                section(&[
-                    "Verification",
-                    "Done When",
-                    "Acceptance",
-                    "Definition of Done",
-                    "Checks",
-                ]),
-                section(&["Notes", "Exceptions", "Caveats", "References"]),
-            ],
+            vec!["Overview", "Items", "Verification", "Notes"],
         ),
         profile("index", vec![]),
     ]
 }
 
-fn profile(name: &str, sections: Vec<Vec<&str>>) -> ProfileDefinition {
+fn profile(name: &str, sections: Vec<&str>) -> ProfileDefinition {
     ProfileDefinition {
         name: name.to_string(),
-        sections: sections
-            .into_iter()
-            .map(|group| group.into_iter().map(|value| value.to_string()).collect())
-            .collect(),
+        sections: sections.into_iter().map(|s| vec![s.to_string()]).collect(),
         required_keys: vec![],
         optional_keys: vec![],
         forbidden_keys: vec![],
         source: PathBuf::from(format!("<builtin:{name}>")),
     }
-}
-
-fn section<'a>(values: &'a [&'a str]) -> Vec<&'a str> {
-    values.to_vec()
 }
 
 pub fn render_profile_template(
@@ -556,7 +495,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn profiles_pack_and_alias_edge_cases() {
+    fn profiles_pack_and_edge_cases() {
         let td = tempfile::tempdir().unwrap();
         let root = td.path();
         let pack_dir = root.join("pack_without_profiles");
@@ -581,7 +520,7 @@ mod tests {
         fs::write(prof_dir.join(".hidden"), "ignored").unwrap();
         fs::write(
             prof_dir.join("subprof.md"),
-            "---\naliases:\n  NewCanonical:\n    - AliasOne\n---\n# Subprof\n",
+            "---\nods:\n  custom_profile:\n    name: subprof\n---\n# Subprof\n\n## NewCanonical\n",
         )
         .unwrap();
 
