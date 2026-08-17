@@ -8,7 +8,7 @@
 # Windows: use install.ps1 instead.
 #
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/StaytunedLLP/open-document-spec/main/src/scripts/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/open-doc-spec/ods/main/src/scripts/install.sh | bash
 #
 # Options via environment variables:
 #   ODS_VERSION   — pin a release tag, e.g. "v0.0.13"  (default: latest stable)
@@ -18,7 +18,7 @@
 #
 set -euo pipefail
 
-REPO="StaytunedLLP/open-document-spec"
+REPO="open-doc-spec/ods"
 API="https://api.github.com/repos/${REPO}"
 
 # ── Helpers ───────────────────────────────────────────────────────────────────

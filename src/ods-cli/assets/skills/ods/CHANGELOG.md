@@ -22,7 +22,7 @@
 
 ### Follow-ups
 - **Enable `gh skill update`:** publish `skills/ods/` into the skills registry
-  repo (`staytunedllp/skills`). That publish is what lets other machines run
+  repo (`open-doc-spec/ods-skills`). That publish is what lets other machines run
   `gh skill install ods` / `gh skill update`; authoring here is step one.
 - Grow evals to ≥10 cases with `evals/fixtures/{good,bad}/` and run across
   models × reasoning-effort levels; add a script-backed validator.

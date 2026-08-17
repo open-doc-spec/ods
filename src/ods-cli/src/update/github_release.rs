@@ -10,9 +10,9 @@ use std::io::{self, Read, Write};
 use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-const API_BASE: &str = "https://api.github.com/repos/StaytunedLLP/open-document-spec";
+const API_BASE: &str = "https://api.github.com/repos/open-doc-spec/ods";
 const API_LATEST: &str =
-    "https://api.github.com/repos/StaytunedLLP/open-document-spec/releases/latest";
+    "https://api.github.com/repos/open-doc-spec/ods/releases/latest";
 const USER_AGENT: &str = concat!("ods/", env!("CARGO_PKG_VERSION"));
 const CHECK_INTERVAL_SECS: u64 = 24 * 60 * 60;
 

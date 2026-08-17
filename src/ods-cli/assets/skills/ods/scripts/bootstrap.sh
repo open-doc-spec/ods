@@ -17,7 +17,7 @@
 #
 # Env:
 #   ODS_PREFIX    install dir for the binary (default: ~/.local/bin)
-#   ODS_REPO      GitHub repo (default: StaytunedLLP/open-document-spec)
+#   ODS_REPO      GitHub repo (default: open-doc-spec/ods)
 #   ODS_VERSION   pin a release tag (default: latest)
 #   GH_TOKEN      required for the private repo (or run `gh auth login`)
 set -euo pipefail

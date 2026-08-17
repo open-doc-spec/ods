@@ -8,7 +8,7 @@ Security fixes target the latest released tag on the default branch and the curr
 
 Please **do not** open a public GitHub issue for security-sensitive reports.
 
-Email the maintainers at the contact address listed on the GitHub organization/profile for **Staytuned LLP**, or use GitHub’s private vulnerability reporting if enabled on this repository.
+Email the maintainers at the contact address listed on the GitHub organization/profile for **open-doc-spec**, or use GitHub’s private vulnerability reporting if enabled on this repository.
 
 Include:
 

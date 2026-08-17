@@ -119,7 +119,7 @@ To maintain a real-time, automated connection between GitHub releases and `opend
 
 1. **Single Source of Truth**: `CHANGELOG.md` in repository root.
 2. **Automated Web Release Sync**:
-   * Astro site (`app-web`) fetches release notes at build time via GitHub REST API (`/repos/StaytunedLLP/open-document-spec/releases`) paired with local `CHANGELOG.md` parsing.
+   * Astro site (`app-web`) fetches release notes at build time via GitHub REST API (`/repos/open-doc-spec/ods/releases`) paired with local `CHANGELOG.md` parsing.
    * `.github/workflows/release.yml` triggers a repository dispatch hook to rebuild and redeploy `app-web` to Firebase Hosting / CDN whenever a release tag is published.
 3. **CLI Terminal Release Notes**:
    * `ods release-notes` command renders formatted release notes directly in the user's terminal.

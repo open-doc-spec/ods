@@ -608,7 +608,7 @@ pub fn update_failed(detail: impl Display) -> UserMsg {
         format!("update failed: {detail}"),
     )
     .next(
-        "check network access to GitHub releases, or install from https://github.com/StaytunedLLP/open-document-spec/releases",
+        "check network access to GitHub releases, or install from https://github.com/open-doc-spec/ods/releases",
     )
 }
 

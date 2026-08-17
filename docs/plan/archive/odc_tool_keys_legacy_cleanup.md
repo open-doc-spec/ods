@@ -144,7 +144,7 @@ Legend: **P0** blocks correct UX · **P1** user-facing docs · **P2** internal n
 
 | Area | Current debt | Target |
 |---|---|---|
-| `app-web/public/install.sh` | Still “ODS installer”, `cargo install ods` / `ods-cli` fallbacks | Install **`ods`** (+ optional `ods` symlink); repo `StaytunedLLP/open-document-spec` / release assets `ods-*` |
+| `app-web/public/install.sh` | Still “ODS installer”, `cargo install ods` / `ods-cli` fallbacks | Install **`ods`** (+ optional `ods` symlink); repo `open-doc-spec/ods` / release assets `ods-*` |
 | `app-web/public/install.ps1` | `cargo install ods-cli` | Same as sh |
 | `src/scripts/install.sh` header | “downloads prebuilt `ods`” | “prebuilt `ods` (+ `ods` alias)” |
 | `src/action/README.md` | Install `ods`, run `ods lint` | `ods` / `ods ods lint` or bare `ods lint` |
