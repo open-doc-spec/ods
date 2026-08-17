@@ -1643,6 +1643,14 @@ mod test_help_catalog {
         assert_eq!(canonical_help_command("sandbox"), "bench");
         assert!(print_command_help("summary"));
         assert!(!print_command_help("not-a-real-command"));
+        assert!(!print_command_help("alias"));
+        assert!(!print_command_help("aliases"));
+        assert!(command_help_text("alias").is_none());
+        assert!(command_help_text("aliases").is_none());
+        assert!(!TOP_LEVEL_HELP.contains("ods alias"));
+        assert!(!TOP_LEVEL_HELP.contains("ods aliases"));
+        let gone = try_print_cli_help(&["ods".into(), "help".into(), "aliases".into()]);
+        assert!(gone.unwrap().is_err());
     }
 
     #[test]

@@ -38,7 +38,7 @@ Happy path: [Quickstart Guide](/docs/quickstart).
 | `ods init [path]` | 🏁 **Tier 1: Novice** | Make folder/repo ODS-compliant (writes root `ods.toml`). `--adopt` drafts frontmatter. No nested indexes. |
 | `ods setup [path]` | 🏁 **Tier 1: Novice** | Set up machine background service for workspace, check updates, and run `ods doctor`. `--git-hooks` installs pre-commit hook. `--editor zed\|vscode\|nvim\|cursor` writes `ods lsp` config. |
 | `ods lsp` | 🏁 **Tier 1: Novice** | JSON-RPC Language Server (stdio / `--port`); not the same as `ods serve`. |
-| `ods lint` / `ods lint [path]` | 🏁 **Tier 1: Novice** | Validate graph & schemas (`ods lint\|3`, `--format text\|json\|sarif`, `--canonical-refs`). Generates or clears `.ods/ods-errors.md`. |
+| `ods lint` / `ods lint [path]` | 🏁 **Tier 1: Novice** | Validate graph & schemas (`--format text\|json\|sarif`, `--canonical-refs`). Generates or clears `.ods/ods-errors.md`. |
 | `ods new <path>` | 🛠️ **Tier 2: Practitioner** | Scaffold a new Markdown document with inferred profile (`guide`, `feature`, etc.) and valid frontmatter. |
 | `ods mv <from> <to>` | 🛠️ **Tier 2: Practitioner** | Offline document move + rewrite graph references workspace-wide. |
 | `ods sync [path]` | 🛠️ **Tier 2: Practitioner** | Reconcile git-tracked renames (`git status --porcelain`) and rewrite graph references. |
@@ -122,7 +122,7 @@ In CI pipelines:
 
 ```bash
 ods lint
-ods lint --level 3
+ods lint --format sarif
 ```
 
 ---

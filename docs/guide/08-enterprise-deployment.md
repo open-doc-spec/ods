@@ -79,6 +79,6 @@ jobs:
       - name: Check Index Lockfile Freshness
         run: ods lint
 
-      - name: Level-3 Graph & Schema Linting
-        run: ods lint --level 3
+      - name: Graph and schema lint
+        run: ods lint
 ```

@@ -11,6 +11,7 @@ GitHub Releases use GitHub’s auto-generated notes. Edit this file by hand when
 
 ### Breaking
 - Workspace marker is **`ods.toml`** only (no nested `index.ods.md` / no ODS `ods index` generation).
+- **`ods alias` / `ods aliases` and `ods.toml` `[aliases]` removed.** Profile section titles are exact (plus pipe-alternatives in the profile file). Help no longer lists those commands.
 - Compliance is **compliant | non-compliant** (no Level 0–3 ladder).
 - `ods serve` product RSS budget default **10 MB** (`service.max_rss_mb`).
 - Skill `references/{intro,keys,core,scope}` are pointers to `specs/ods/*` (no forked copies).
@@ -32,7 +33,6 @@ GitHub Releases use GitHub’s auto-generated notes. Edit this file by hand when
 - **`ods context` filter fallback:** when the positional id is omitted, `--tag` / `--key` / `--status` may resolve a target **only if the match is unique**; multi-match fails with a short id list and `Next: ods find …`. Classic `ods context <id>` is unchanged.
 - **`ods profile init --register` (default):** scaffolds `.ods/profiles/<name>.md` and appends it under root `custom-profiles:` (use `--no-register` to skip). **`ods profile show <name>`** prints layer, sections, and required/optional/forbidden keys.
 - **`ods status <path-or-id> <draft|stable|deprecated|archived>`** lifecycle setter; **`ods archive`** remains an alias for `status … archived`.
-- **`ods aliases` / `ods alias add <Canonical> <Synonym>`** for workspace section-heading aliases in root `ods.toml` `[aliases]` (legacy root index still accepted).
 - **`ods context --explain`** / **`--include-related`**; hybrid **`--okf`** merges OKF link neighborhood after ODS depends/load; respects root `specs.okf.enabled`.
 - **`ods undo --list`** lists machine backup snapshots; help clarifies undo is snapshot/bench restore, not full git undo.
 - Guide clarity: multi-spec flag rules in quickstart; context depends/related/load recipe; packs v1 = profile catalogs (honest scope); `--okf` command matrix in CLI help.

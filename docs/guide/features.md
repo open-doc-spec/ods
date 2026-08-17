@@ -51,14 +51,6 @@ The root `ods.toml` file serves as the single workspace marker and policy home f
 
 ---
 
-### Section Heading Aliases (`[aliases]`)
-
-| Key | Type | Purpose & Effect |
-| :--- | :--- | :--- |
-| **`[aliases]`** | table (heading → string[]) | **Workspace H2 Section Heading Mapping**: Maps canonical H2 profile section titles to acceptable synonym headings (e.g. `Goal = ["Objective", "Purpose"]`). When validating document profile sections in `ods lint`, any section matching an alias is accepted as satisfying the required section. |
-
----
-
 ### Extra Spec Engines (`[specs.okf]` & `[specs.skills]`)
 
 Declaratively enables multi-spec validation during bare `ods lint` without requiring explicit CLI flags (`--okf`, `--skills`).
@@ -108,10 +100,6 @@ custom_profiles = [
 packs = [
   "vendor/engineering-pack"
 ]
-
-[aliases]
-Goal = ["Objective", "Purpose"]
-Architecture = ["Design", "System Design"]
 
 [specs.okf]
 enabled = true

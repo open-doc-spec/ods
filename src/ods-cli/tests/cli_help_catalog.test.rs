@@ -91,6 +91,8 @@ fn top_level_help_is_a_full_command_map() {
     assert!(!stdout.contains("ods-lsp"));
     assert!(!stdout.to_ascii_lowercase().contains("zed extension"));
     assert!(!stdout.contains("Guidance for maintainers"));
+    assert!(!stdout.contains("ods alias"));
+    assert!(!stdout.contains("ods aliases"));
 }
 
 #[test]
