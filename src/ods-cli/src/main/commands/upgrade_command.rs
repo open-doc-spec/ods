@@ -68,7 +68,7 @@ fn run_upgrade_command(args: &[String]) -> Result<ExitCode, CliError> {
 
     if ods {
         actions.push(
-            "manual: review root index.md ods: / ods: pins if needed (~3 known repos)"
+            "manual: review root ods.toml spec / packs if needed (~3 known repos)"
                 .into(),
         );
         actions.push("next: ods audit --write-report".into());

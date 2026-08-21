@@ -9,7 +9,7 @@ description: >-
 
 | Dialect | Flag | Root marker | Keys home |
 |---|---|---|---|
-| ODS | *(none)* | `ods: 0.1` on root index | `specs/ods/keys.md` |
+| ODS | *(none)* | `ods.toml` `spec = "0.1"` | `specs/ods/keys.md` |
 | OKF | `--okf` | `okf_version: "0.2"` | `specs/okf/keys.md` |
 | Skills | `--skills` | `SKILL.md` package | `specs/skills/keys.md` |
 

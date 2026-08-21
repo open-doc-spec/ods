@@ -87,10 +87,10 @@ function Find-WorkspaceRoot {
     if (-not $dir) { return $null }
     $current = $dir.Path
     while ($current) {
-        $indexPath = Join-Path $current "index.md"
-        if (Test-Path $indexPath) {
-            $content = Get-Content $indexPath -Raw -ErrorAction SilentlyContinue
-            if ($content -match '(?m)^ods\s*:') {
+        $tomlPath = Join-Path $current "ods.toml"
+        if (Test-Path $tomlPath) {
+            $content = Get-Content $tomlPath -Raw -ErrorAction SilentlyContinue
+            if ($content -match '(?m)^\s*spec\s*=') {
                 return $current
             }
         }

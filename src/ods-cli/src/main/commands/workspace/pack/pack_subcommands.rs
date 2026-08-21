@@ -8,31 +8,13 @@ fn run_pack_remove(args: &[String]) -> Result<ExitCode, CliError> {
 
     let root = resolve_root_path(root_path);
     let toml_path = root.join("ods.toml");
-    if toml_path.exists() {
-        if let Ok(text) = fs::read_to_string(&toml_path) {
-            let updated = remove_pack_from_ods_toml(&text, &name);
-            fs::write(&toml_path, updated).map_err(|e| fail_io("pack", e))?;
-            println!("Removed ODS Pack reference '{}' from ods.toml.", name);
-        }
-    } else {
-        let root_index_path = if root.join("index.ods.md").exists() {
-            Some(root.join("index.ods.md"))
-        } else if root.join("index.md").exists() {
-            Some(root.join("index.md"))
-        } else {
-            None
-        };
-
-        if let Some(ref p) = root_index_path {
-            let text = fs::read_to_string(p).map_err(|e| fail_io("pack", e))?;
-            let target_line = format!("  - {name}");
-            let updated = text.lines().filter(|line| *line != target_line).collect::<Vec<_>>().join("\n");
-            fs::write(p, updated).map_err(|e| fail_io("pack", e))?;
-            println!("Removed ODS Pack reference '{}' from root index.", name);
-        } else {
-            println!("Removed ODS Pack reference '{}'.", name);
-        }
+    if !toml_path.exists() {
+        return Err(fail_msg(ods_core::root_index_missing()));
     }
+    let text = fs::read_to_string(&toml_path).map_err(|e| fail_io("pack", e))?;
+    let updated = remove_pack_from_ods_toml(&text, &name);
+    fs::write(&toml_path, updated).map_err(|e| fail_io("pack", e))?;
+    println!("Removed ODS Pack reference '{name}' from ods.toml.");
     Ok(ExitCode::from(0))
 }
 
@@ -167,20 +149,59 @@ mod test_pack_command {
     }
 
     #[test]
-    fn insert_pack_into_root_index_variants() {
-        let with_packs = "---\nprofile: index\npacks:\n  - existing\n---\n\n# R\n";
-        let out = insert_pack_into_root_index(with_packs, "new-pack");
-        assert!(out.contains("new-pack"), "{out}");
+    fn pack_add_requires_ods_toml_not_root_index() {
+        let td = tempfile::tempdir().unwrap();
+        let ws = td.path().join("ws");
+        std::fs::create_dir_all(&ws).unwrap();
+        std::fs::write(
+            ws.join("index.md"),
+            "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
+        )
+        .unwrap();
+        let pack = td.path().join("p");
+        std::fs::create_dir_all(&pack).unwrap();
 
-        let no_packs = "---\nprofile: index\nods: 0.1\n---\n\n# R\n";
-        let out = insert_pack_into_root_index(no_packs, "p2");
-        assert!(out.contains("packs:"), "{out}");
-        assert!(out.contains("p2"), "{out}");
+        let err = run_pack_add(&[
+            "ods".into(),
+            "pack".into(),
+            "add".into(),
+            ws.to_string_lossy().to_string(),
+            pack.to_string_lossy().to_string(),
+        ])
+        .unwrap_err();
+        assert!(
+            err.message().contains("ods.toml"),
+            "expected ods.toml error, got {}",
+            err.message()
+        );
+        let index = std::fs::read_to_string(ws.join("index.md")).unwrap();
+        assert!(!index.contains("packs:"), "{index}");
+    }
 
-        let plain = "# No frontmatter\n";
-        let out = insert_pack_into_root_index(plain, "p3");
-        assert!(out.starts_with("---"), "{out}");
-        assert!(out.contains("p3"), "{out}");
+    #[test]
+    fn pack_add_writes_ods_toml_not_index_md() {
+        let td = tempfile::tempdir().unwrap();
+        let ws = td.path().join("ws");
+        std::fs::create_dir_all(&ws).unwrap();
+        std::fs::write(ws.join("ods.toml"), "spec = \"0.1\"\n").unwrap();
+        let index_before = "---\nprofile: index\n---\n\n# Nav\n";
+        std::fs::write(ws.join("index.md"), index_before).unwrap();
+        let pack = ws.join("local-pack");
+        std::fs::create_dir_all(&pack).unwrap();
+
+        let res = run_pack_add(&[
+            "ods".into(),
+            "pack".into(),
+            "add".into(),
+            ws.to_string_lossy().to_string(),
+            pack.to_string_lossy().to_string(),
+        ]);
+        assert!(res.is_ok(), "{res:?}");
+        let toml = std::fs::read_to_string(ws.join("ods.toml")).unwrap();
+        assert!(toml.contains("packs"), "{toml}");
+        assert!(toml.contains("local-pack"), "{toml}");
+        let index_after = std::fs::read_to_string(ws.join("index.md")).unwrap();
+        assert_eq!(index_after, index_before);
     }
 
     #[test]
@@ -191,11 +212,6 @@ mod test_pack_command {
         std::fs::write(
             ws.join("ods.toml"),
             "spec = \"0.1\"\npacks = [\"local-pack\"]\n",
-        )
-        .unwrap();
-        std::fs::write(
-            ws.join("index.ods.md"),
-            "---\nprofile: index\nods: 0.1\npacks:\n  - local-pack\n---\n\n# R\n",
         )
         .unwrap();
         std::fs::create_dir_all(ws.join("local-pack")).unwrap();
@@ -267,5 +283,28 @@ mod test_pack_command {
 
         let res_flag = run_pack_command(&["ods".into(), "pack".into(), "--help".into()]);
         assert!(res_flag.is_ok());
+    }
+
+    #[test]
+    fn pack_remove_requires_ods_toml() {
+        let td = tempfile::tempdir().unwrap();
+        let ws = td.path().join("ws");
+        std::fs::create_dir_all(&ws).unwrap();
+        std::fs::write(ws.join("index.md"), "---\npacks:\n  - p\n---\n\n# R\n").unwrap();
+        let err = run_pack_remove(&[
+            "ods".into(),
+            "pack".into(),
+            "remove".into(),
+            ws.to_string_lossy().to_string(),
+            "p".into(),
+        ])
+        .unwrap_err();
+        assert!(
+            err.message().contains("ods.toml"),
+            "expected ods.toml error, got {}",
+            err.message()
+        );
+        let index = std::fs::read_to_string(ws.join("index.md")).unwrap();
+        assert!(index.contains("  - p"), "{index}");
     }
 }

@@ -63,7 +63,7 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.lsp.start({
       name = "ods-lsp",
       cmd = { "ods", "lsp" },
-      root_dir = vim.fs.dirname(vim.fs.find({'index.md'}, { upward = true })[1]),
+      root_dir = vim.fs.dirname(vim.fs.find({'ods.toml'}, { upward = true })[1]),
     })
   end,
 })

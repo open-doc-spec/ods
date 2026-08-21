@@ -89,7 +89,7 @@ ods:
                 );
                 println!("  - {rel_register}");
             }
-            Ok(RegisterResult::NoRootIndex) => {
+            Ok(RegisterResult::NoOdsToml) => {
                 println!("warning: missing ods.toml — profile not registered");
                 println!("Next: ods init  then re-run: ods profile init {profile_name}");
             }
@@ -115,7 +115,7 @@ ods:
 enum RegisterResult {
     Registered(PathBuf),
     AlreadyRegistered(PathBuf),
-    NoRootIndex,
+    NoOdsToml,
 }
 
 fn register_custom_profile_in_root(
@@ -124,7 +124,7 @@ fn register_custom_profile_in_root(
 ) -> Result<RegisterResult, CliError> {
     let toml_path = root.join("ods.toml");
     if !toml_path.is_file() {
-        return Ok(RegisterResult::NoRootIndex);
+        return Ok(RegisterResult::NoOdsToml);
     }
 
     let text = fs::read_to_string(&toml_path).map_err(|e| fail_io("profile", e))?;
