@@ -98,7 +98,7 @@ mod tests {
         let found = find_workspace_root(&file);
         assert!(
             found.is_none(),
-            "expected None without ods.toml / ods: marker, got {:?}",
+            "expected None without ods.toml marker, got {:?}",
             found
         );
 

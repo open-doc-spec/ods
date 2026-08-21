@@ -5,8 +5,8 @@
 - **User-facing messages SoT:** `error/messages.rs` (CLI lifecycle + high-volume lint diagnostics)
 - Multi-spec: `multi_spec/` + flags only (no namespaces); `ScopeResolveError::message()` delegates to the catalog
 - Frontmatter model: universal top-level tags; engine under nested `ods:`
-- Index canonical name: prefer `index.ods.md` (also accept `index.md`)
-- Root marker: scalar `ods` version on root index; custom profiles key `custom-profiles`
+- Navigation indexes (`index.md` / `index.ods.md`) are optional; they are not the workspace marker
+- Root marker: `ods.toml` with `spec`; custom profiles key `custom_profiles`
 - Spec docs: `specs/ods/` (not a runtime dependency — keep behavior aligned)
 
 ## Keys = schema registry

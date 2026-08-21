@@ -194,7 +194,7 @@ fn profile_fmt_disable_doctor_and_flag_matrix() {
         .unwrap();
     assert!(out.status.success(), "profiles json: {:?}", out);
 
-    // profile init writes under cwd/.ods/profiles/ and registers custom-profiles:
+    // profile init writes under cwd/.ods/profiles/ and registers custom_profiles in ods.toml
     let out = ods()
         .current_dir(&dir)
         .args(["profile", "init", "rfc"])
@@ -202,11 +202,10 @@ fn profile_fmt_disable_doctor_and_flag_matrix() {
         .unwrap();
     assert!(out.status.success(), "profile init: {:?}", out);
     assert!(dir.join(".ods/profiles/rfc.md").is_file());
-    let index_text = fs::read_to_string(dir.join("ods.toml"))
-        .unwrap_or_else(|_| fs::read_to_string(dir.join("ods.toml")).expect("root index"));
+    let toml_text = fs::read_to_string(dir.join("ods.toml")).expect("ods.toml");
     assert!(
-        index_text.contains(".ods/profiles/rfc.md"),
-        "expected custom-profiles registration: {index_text}"
+        toml_text.contains(".ods/profiles/rfc.md"),
+        "expected custom_profiles registration: {toml_text}"
     );
     let out = ods()
         .current_dir(&dir)

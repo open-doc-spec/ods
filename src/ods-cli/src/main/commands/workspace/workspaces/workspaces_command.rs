@@ -149,8 +149,8 @@ fn run_workspaces_command(args: &[String]) -> Result<ExitCode, CliError> {
                     }
                 }
                 println!();
-                println!("✓ = has root index.md with ods: marker");
-                println!("○ = registered but no local ods: marker");
+                println!("✓ = has root ods.toml with spec");
+                println!("○ = registered but no local ods.toml marker");
             }
             Ok(ExitCode::from(0))
         }
