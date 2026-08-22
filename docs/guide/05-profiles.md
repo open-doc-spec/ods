@@ -102,6 +102,17 @@ packs:
 | **General Prose / Formal Spec / Note** | `note` | — |
 | **Agent Instructions / Prompt Contract** | `agent` | Goal, Task, Scope, Non-Scope, Context, Inputs, Constraints, Priority, Steps, Output, Success Criteria, Failure Modes, Dependencies, Assumptions, Examples |
 
+### Writing `agent.md` documents
+
+Use the headings in the `agent` row as the document body contract. Keep the
+instruction itself in Markdown under those headings; frontmatter should only
+identify the document (`ods.profile: agent`, lifecycle status, and applicable
+relationships). A short document may omit empty optional sections, while a
+complex task should make dependencies, assumptions, failure modes, and success
+criteria explicit. Use `depends` for document-level prerequisites and the
+`Steps` section for ordered work; do not encode task logic in XML tags or
+invent new frontmatter keys for prose instructions.
+
 
 ### Profile resolution order
 

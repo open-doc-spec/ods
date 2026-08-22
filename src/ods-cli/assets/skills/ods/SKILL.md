@@ -51,6 +51,18 @@ When assisting users inside an ODS workspace, follow these operational directive
 - 🛡️ **SAFETY**: Prefer H1 for titles (FM `title:` is a lint **warning**, value kept). Navigation is CLI discovery (`overview` / `find` / `tree` / `context`) — never recreate nested `index.ods.md`. Workspace marker is **`ods.toml`**. Non-ODS keys (e.g. Hugo `layout`, Astro `hero_image`) are preserved across mutations; only ODS (or `--okf` / `--skills`) keys change.
 - 🛠️ **HOW**: `ods context <id>` from workspace root; optional `--include-code`, `--include-private`, `--root <dir>`.
 
+## 1.1 Writing agent instructions
+
+For a standalone agent instruction, create `agent.md` and set
+`ods.profile: agent`. Write the instruction in the Markdown body using the
+standard headings: `Goal`, `Task`, `Scope`, `Non-Scope`, `Context`, `Inputs`,
+`Constraints`, `Priority`, `Steps`, `Output`, `Success Criteria`, `Failure Modes`,
+`Dependencies`, `Assumptions`, and `Examples`. Keep prose and task
+logic in those sections rather than XML tags or new frontmatter keys. Use
+`depends` for document-level prerequisites; use `Steps` for ordered execution
+within the agent task. `SKILL.md` remains the package entrypoint for an
+installable Agent Skill.
+
 ---
 
 ## 2. End-User Installation & Machine Setup
