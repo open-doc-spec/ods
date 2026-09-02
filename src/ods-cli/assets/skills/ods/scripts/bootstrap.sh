@@ -73,12 +73,12 @@ cmd_update() {
   log "now on $(ods --version)"
 }
 
-# Resolve the workspace root: walk up looking for an index.md whose frontmatter
-# carries an `ods:` key. Prints the root path on success, empty on failure.
+# Resolve the workspace root: walk up looking for ods.toml with spec=.
+# Prints the root path on success, empty on failure.
 find_workspace_root() {
   local dir; dir="$(cd "${1:-.}" 2>/dev/null && pwd)" || return 1
   while :; do
-    if [[ -f "${dir}/index.md" ]] && frontmatter_has_ods "${dir}/index.md"; then
+    if [[ -f "${dir}/ods.toml" ]] && grep -Eq '^[[:space:]]*spec[[:space:]]*=' "${dir}/ods.toml"; then
       printf '%s\n' "${dir}"
       return 0
     fi
@@ -86,16 +86,6 @@ find_workspace_root() {
     dir="$(dirname "${dir}")"
   done
   return 1
-}
-
-# True if the file's leading YAML frontmatter block contains a top-level `ods:` key.
-frontmatter_has_ods() {
-  awk '
-    NR==1 && $0!="---" { exit 1 }        # no frontmatter at all
-    NR==1 { infm=1; next }
-    infm && $0=="---" { exit 1 }         # end of frontmatter, key not found
-    infm && /^ods[[:space:]]*:/ { exit 0 }
-  ' "$1"
 }
 
 is_git() {
@@ -109,7 +99,7 @@ cmd_check() {
     printf 'compliant=true root=%s\n' "${root}"
   else
     printf 'compliant=false root=\n'
-    printf 'hint: not an ODS workspace (no index.md with `ods:`). Run: ods init %s\n' "${path}"
+    printf 'hint: not an ODS workspace (no ods.toml with spec). Run: ods init %s\n' "${path}"
   fi
   if is_git "${path}"; then
     printf 'git=true\n'
@@ -123,7 +113,7 @@ cmd_ensure() {
   local path="${1:-.}"
   have_cli || die "ods not installed; run: bootstrap.sh install"
   if ! find_workspace_root "${path}" >/dev/null; then
-    warn "not an ODS workspace (no index.md with \`ods:\`). Run: ods init ${path}"
+    warn "not an ODS workspace (no ods.toml with spec). Run: ods init ${path}"
     warn "skipping service start on a non-workspace"
     return 0
   fi

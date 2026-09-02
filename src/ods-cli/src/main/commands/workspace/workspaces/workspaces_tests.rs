@@ -14,7 +14,7 @@ mod test_workspaces_command {
         let td = tempfile::tempdir().unwrap();
         let sample = td.path().join("ws");
         std::fs::create_dir_all(&sample).unwrap();
-        std::fs::write(sample.join("index.md"), "---\nprofile: index\nods: 0.1\n---\n\n# R\n").unwrap();
+        std::fs::write(sample.join("ods.toml"), "spec = \"0.1\"\n").unwrap();
 
         let res_list_txt = run_workspaces_command(&[
             "ods".into(),

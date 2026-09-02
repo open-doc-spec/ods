@@ -21,7 +21,7 @@ This document is the **author-facing map** of which metadata keys belong to whic
 ```
 ods lint         # ODS only (default)
 ods lint --okf   # OKF only on pure OKF trees; ODS+OKF on hybrid when ODS is present
-ods init         # ODS workspace (root ods: marker)
+ods init         # ODS workspace (root ods.toml with spec)
 ods init --okf   # OKF bundle (okf_version: "0.2")
 ```
 
@@ -74,13 +74,13 @@ There is no namespace form. Extra specs always use flags.
 
 | Key | Spec | Where | Purpose |
 |---|---|---|---|
-| `ods: <version>` e.g. `0.1` | ODS | Root `index.md` | Declares ODS workspace boundary and spec version |
-| `ods: ">=x.y.z"` | ODS | Root `index.md` | Minimum CLI version required for this workspace |
+| `spec = "0.1"` | ODS | Root `ods.toml` | Declares ODS workspace boundary and spec version |
 | `okf_version: "0.2"` | OKF | Root `index.md` only | Declares OKF bundle targets v0.2 |
-| Both | Hybrid | Root `index.md` | Bare commands = ODS; pass `--okf` to include OKF (no namespaces) |
+| Both | Hybrid | `ods.toml` + OKF root `index.md` | Bare commands = ODS; pass `--okf` to include OKF (no namespaces) |
 
-**Reserved filenames (OKF):** `index.md`, `log.md` are not concepts.  
-**ODS:** root/non-root `index.md` follow ODS index rules (`profile: index`, etc.).
+**Reserved filenames (OKF):** `index.md`, `log.md` are bundle conventions.
+
+**ODS:** optional navigation `index.md` files may use `profile: index`; they are **not** the workspace marker. Workspace policy (`spec`, `ignore`, `packs`, `custom_profiles`, `[specs.*]`) lives in `ods.toml`. Scalar `ods: 0.1` on a document is legacy, not the project boundary.
 
 ---
 
@@ -90,7 +90,7 @@ Legend: **Yes** = first-class in that spec · **No** = not part of that spec’s
 
 | Key / concept | ODS | OKF v0.2 | Purpose (short) |
 |---|---|---|---|
-| **Root `ods:`** | Yes | No | ODS workspace version / boundary (e.g. `0.1`) |
+| **Root `ods.toml` `spec`** | Yes | No | ODS workspace version / boundary (e.g. `"0.1"`) |
 | **Nested `ods.profile`** | Yes | No | Document shape (guide, api, feature, …) |
 | **Nested `ods.status`** | Yes | Related* | ODS doc lifecycle (`draft` / `stable` / …) |
 | **Nested `ods.id`** | Yes | No† | Stable id override (path is default id) |

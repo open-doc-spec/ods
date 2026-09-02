@@ -230,7 +230,7 @@ pub struct Frontmatter {
     /// True when a nested `ods:` map block was present (rejected in 2.0+).
     pub ods_wrapper: bool,
     pub ods: Option<String>,
-    /// Workspace-relative path prefixes to exclude from scan/index (root `index.md` only).
+    /// Workspace-relative path prefixes to exclude from scan (legacy root-index policy; prefer `ods.toml` `ignore`).
     pub ignore: Vec<String>,
     pub name: Option<String>,
     pub title: Option<String>,

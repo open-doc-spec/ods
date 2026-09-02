@@ -19,6 +19,8 @@ GitHub Releases use GitHub’s auto-generated notes. Edit this file by hand when
 - Skill `references/{intro,keys,core,scope}` are pointers to `specs/ods/*` (no forked copies).
 
 ### Fixed
+- **Workspace marker honesty (`ods.toml`):** `ods pack add` / `remove` write only `ods.toml` `packs = […]` and fail when the marker is missing. A leftover root `index.md` is optional navigation, not the pack policy file. User copy (`ods workspaces list`, upgrade hints, install scripts, skill bootstrap/evals, ODS vs OKF comparison) no longer teaches root `index.md` `ods:` as the workspace boundary.
+- **Normative spec (satellite):** merged [open-doc-spec/ods-spec#13](https://github.com/open-doc-spec/ods-spec/pull/13) names `ods.toml` as the exclusive workspace marker (`WS-001`), forbids policy keys in document frontmatter (`PLACE-003`), and rewrites the Zero Config-File Guarantee. Root `index.md` is optional navigation only. Tracks [ods#74](https://github.com/open-doc-spec/ods/issues/74) / [ods-spec#12](https://github.com/open-doc-spec/ods-spec/issues/12).
 - **Non-destructive frontmatter:** `ods fmt --migrate` preserves unknown keys nested under `ods:` (no longer drops foreign nested blocks). Third-party top-level keys (Hugo/Astro/etc.) remain untouched on migrate, tag rewrite, spacing normalize, and disable strip.
 - **CLI honesty after index removal:** help/completions no longer claim ODS `index` lockfile generation; `ods lint --fix` documents no-op (discovery is `overview`/`find`/`tree`); error catalog points at **`ods.toml`** not root `index.ods.md`.
 - Removed accidental committed workspace graph dumps (`graph.md`, `src/ods-cli/graph.md`).
@@ -37,7 +39,7 @@ GitHub Releases use GitHub’s auto-generated notes. Edit this file by hand when
 - **`ods schema keys`:** inspect registered schema key definitions, placements (`TopLevel`, `NestedEngineMap`), key types, and descriptions in text or JSON. Bare `ods schema` still exports JSON Schema.
 - **`ods overview` (alias: `ods summary`):** compact workspace snapshot (document counts, profile/status breakdown, top tags, custom keys, graph statistics) for AI cold-start. Use `ods stats` for lint health %.
 - **`ods context` filter fallback:** when the positional id is omitted, `--tag` / `--key` / `--status` may resolve a target **only if the match is unique**; multi-match fails with a short id list and `Next: ods find …`. Classic `ods context <id>` is unchanged.
-- **`ods profile init --register` (default):** scaffolds `.ods/profiles/<name>.md` and appends it under root `custom-profiles:` (use `--no-register` to skip). **`ods profile show <name>`** prints layer, sections, and required/optional/forbidden keys.
+- **`ods profile init --register` (default):** scaffolds `.ods/profiles/<name>.md` and appends it under `custom_profiles` in root `ods.toml` (use `--no-register` to skip). **`ods profile show <name>`** prints layer, sections, and required/optional/forbidden keys.
 - **`ods status <path-or-id> <draft|stable|deprecated|archived>`** lifecycle setter; **`ods archive`** remains an alias for `status … archived`.
 - **Memory budget (≤10 MB serve SLA):** `ods_core::memory` RSS helpers; streaming graph parse; `LoadOptions::default()` graph mode; `ODS_LOW_MEMORY=1`, `ODS_MEM_REPORT=1`; serve strips bodies when over `[service].max_rss_mb`; `memory_budget_test` + `mem-serve.sh` in check-local.
 - **`ods undo --list`** lists machine backup snapshots; help clarifies undo is snapshot/bench restore, not full git undo.

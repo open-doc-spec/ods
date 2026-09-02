@@ -423,8 +423,8 @@ impl<R: BufRead, W: Write> LspSession<R, W> {
             "**share**: Visibility filter (`public`, `org`, `private`)."
         } else if line.trim_start().starts_with("tags:") || line.contains("tags:") {
             "**tags**: Free-form taxonomy facets. MUST be top-level frontmatter (not under `ods:`) so SSGs and other tools can read them."
-        } else if line.contains("custom-profiles:") {
-            "**custom-profiles**: Workspace-wide array of custom profile schema definition paths."
+        } else if line.contains("custom_profiles") || line.contains("custom-profiles:") {
+            "**custom_profiles**: Workspace-wide array of custom profile schema paths in `ods.toml` (not document frontmatter)."
         } else if line.contains("ods:") {
             "**ods**: Open Document Spec nested engine key block or root version marker. Engine keys only — never put `tags` here."
         } else {

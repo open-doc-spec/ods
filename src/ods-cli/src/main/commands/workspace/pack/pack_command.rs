@@ -34,18 +34,7 @@ fn run_pack_list(args: &[String]) -> Result<ExitCode, CliError> {
     let path = extract_pack_path(args, 3);
     let root = resolve_root_path(path);
     let workspace = load_workspace(&root).map_err(|e| fail_load(&root, e))?;
-
-    // Prefer ods.toml packs; fall back to legacy root index frontmatter.
-    let mut packs = workspace.config.packs.clone();
-    if packs.is_empty()
-        && let Some(doc) = workspace
-            .documents
-            .iter()
-            .find(|d| d.path == root.join("index.ods.md"))
-        && let FrontmatterState::Parsed(fm) = &doc.frontmatter
-    {
-        packs = fm.packs.clone();
-    }
+    let packs = workspace.config.packs.clone();
 
     println!("ODS Workspace Packs (root: {}):", root.display());
     if packs.is_empty() {
@@ -112,15 +101,7 @@ fn run_pack_add(args: &[String]) -> Result<ExitCode, CliError> {
 
     let root = resolve_root_path(root_path);
     let toml_path = root.join("ods.toml");
-    let root_index_path = if root.join("index.ods.md").exists() {
-        Some(root.join("index.ods.md"))
-    } else if root.join("index.md").exists() {
-        Some(root.join("index.md"))
-    } else {
-        None
-    };
-
-    if !toml_path.exists() && root_index_path.is_none() {
+    if !toml_path.exists() {
         return Err(fail_msg(ods_core::root_index_missing()));
     }
 
@@ -177,57 +158,22 @@ fn run_pack_add(args: &[String]) -> Result<ExitCode, CliError> {
     };
     let _ = save_pack_entry(entry);
 
-    // Append pack_entry to root index frontmatter if present, or to ods.toml
-    let toml_path = root.join("ods.toml");
-    if toml_path.is_file() {
-        let text = fs::read_to_string(&toml_path).map_err(|e| fail_io("pack", e))?;
-        if !text.contains(&format!("\"{pack_entry}\"")) {
-            let updated = insert_pack_into_ods_toml(&text, &pack_entry);
-            fs::write(&toml_path, updated).map_err(|e| fail_io("pack", e))?;
-        }
-        println!("Added ODS Pack '{}' to ods.toml.", pack_entry);
-    } else if let Some(ref p) = root_index_path {
-        let text = fs::read_to_string(p).map_err(|e| fail_io("pack", e))?;
-        if text.contains(&format!("- {pack_entry}")) || text.contains(&format!("- \"{pack_entry}\"")) {
-            println!("Pack '{}' is already registered in root index.md.", pack_entry);
-            return Ok(ExitCode::from(0));
-        }
-
-        let updated_text = insert_pack_into_root_index(&text, &pack_entry);
-        fs::write(p, updated_text).map_err(|e| fail_io("pack", e))?;
-
-        println!("Added ODS Pack '{}' to root index.md frontmatter.", pack_entry);
-    } else {
-        println!("Added ODS Pack '{}' to workspace.", pack_entry);
+    let text = fs::read_to_string(&toml_path).map_err(|e| fail_io("pack", e))?;
+    if text.contains(&format!("\"{pack_entry}\"")) {
+        println!("Pack '{pack_entry}' is already registered in ods.toml.");
+        return Ok(ExitCode::from(0));
     }
+    let updated = insert_pack_into_ods_toml(&text, &pack_entry);
+    fs::write(&toml_path, updated).map_err(|e| fail_io("pack", e))?;
+    println!("Added ODS Pack '{pack_entry}' to ods.toml.");
     Ok(ExitCode::from(0))
-}
-
-fn insert_pack_into_root_index(text: &str, pack_entry: &str) -> String {
-    if text.contains("packs:") {
-        text.replace("packs:", &format!("packs:\n  - {pack_entry}"))
-    } else if text.starts_with("---\n") || text.starts_with("---\r\n") {
-        text.replacen("---", &format!("---\npacks:\n  - {pack_entry}"), 1)
-    } else {
-        format!("---\npacks:\n  - {pack_entry}\n---\n\n{text}")
-    }
 }
 
 fn run_pack_sync(args: &[String]) -> Result<ExitCode, CliError> {
     let force = args.iter().any(|a| a == "--force" || a == "-f");
     let root = resolve_root_path(env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
     let workspace = load_workspace(&root).map_err(|e| fail_load(&root, e))?;
-
-    let mut packs = workspace.config.packs.clone();
-    if packs.is_empty()
-        && let Some(doc) = workspace
-            .documents
-            .iter()
-            .find(|d| d.path == root.join("index.ods.md"))
-        && let FrontmatterState::Parsed(fm) = &doc.frontmatter
-    {
-        packs = fm.packs.clone();
-    }
+    let packs = workspace.config.packs.clone();
 
     let registered_packs = load_registered_packs();
     println!("Synchronizing {} installed ODS Packs...", packs.len());
