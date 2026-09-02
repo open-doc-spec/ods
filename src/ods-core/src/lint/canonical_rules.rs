@@ -18,7 +18,11 @@ pub(super) fn lint_references(
 ) -> Vec<Diagnostic> {
     let mut diagnostics = Vec::new();
 
-    for reference in frontmatter.depends.iter().chain(frontmatter.related.iter()) {
+    for reference in frontmatter
+        .depends
+        .iter()
+        .chain(frontmatter.related_targets().iter())
+    {
         if crate::refs::document_ref_to_id(workspace, document, reference).is_none()
             && !ids.contains_key(reference)
         {
@@ -37,6 +41,17 @@ pub(super) fn lint_references(
                 path: document.path.clone(),
                 severity: Severity::Warning,
                 message: crate::error::lint_non_canonical_ref(reference, &canonical),
+            });
+        }
+    }
+
+    for load in &frontmatter.load {
+        let path = normalize_join(&document.directory, Path::new(load));
+        if !path.exists() {
+            diagnostics.push(Diagnostic {
+                path: document.path.clone(),
+                severity: Severity::Error,
+                message: crate::error::lint_missing_load_path(load),
             });
         }
     }

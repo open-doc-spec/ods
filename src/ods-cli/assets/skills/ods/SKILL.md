@@ -15,13 +15,13 @@ description: >-
 |---|---|
 | **`ods`** | Unified native Rust CLI binary and engine (`ods`) |
 | **`ods lsp`** | Native JSON-RPC 2.0 Language Server built into `ods` for Zed, VS Code, Neovim, Cursor |
-| **`ods:` frontmatter** | ODS format root/nested engine keys (`ods: { profile: rfc, status: draft }`) |
+| **`ods:` frontmatter** | ODS 2.0 **flat top-level** engine keys (`profile:`, `status:`, `load:` — no nested `ods:` wrapper) |
 | **`custom_profiles`** | `ods.toml` array declaring custom profile schema definitions |
-| **`ods context`** | Bounded AI reading list: target doc + `depends` + `context.load` (not full-repo, not full graph export) |
+| **`ods context`** | Bounded AI reading list: target doc + `depends` + top-level `load` (not full-repo, not full graph export) |
 | **`ods read`** | Fine-grained section extraction (`--section`), outline summary (`--summary`), and token cap controls (`--max-tokens N`) |
 | **`ods export graph`** | Full-workspace graph snapshot — use rarely for audits, **not** for routine AI prompts |
 
-ODS is plain Markdown with **permissive** YAML frontmatter, powered by a native Rust engine binary named **`ods`**. A **workspace** is any directory tree whose root **`ods.toml`** has `spec` (e.g. `"0.1"`). Compliance is **compliant | non-compliant** (no Level ladder). Discovery: `overview` → `find` / `tag` / `ls` / `tree` → `read` / `context`.
+ODS is plain Markdown with **permissive** YAML frontmatter, powered by a native Rust engine binary named **`ods`**. A **workspace** is any directory tree whose root **`ods.toml`** has `spec` (e.g. `"2.0"`). Compliance is **compliant | non-compliant** (no Level ladder). Discovery: `overview` → `find` / `tag` / `ls` / `tree` → `read` / `context`.
 
 ---
 
@@ -42,8 +42,8 @@ There is **no** `--ods` flag and **no** `ods okf` / `ods ods` namespaces (`ods o
 When assisting users inside an ODS workspace, follow these operational directives:
 
 - ❓ **WHAT**: Recognize ODS workspaces by root `ods.toml` (`spec`). Keep files as `.md`. For standalone agent instructions, prefer `agent.md` with the ODS `agent` profile; keep `SKILL.md` for installable skills. Title is H1 only (no FM `title:`); optional top-level `name:` is fine.
-- 💡 **WHY (token discipline)**: Prefer `ods read <id> [--section <heading>] [--summary] [--max-tokens N]` or `ods context <id> [--max-tokens N] [--print]` for a **bounded** read (depends + `context.load` only — **not** `related`). Read only those sections/paths. Never dump the repo or use full graph export for routine Q&A. On “document not found”, run `ods find <query>` / `ods find --key …` — do not load all markdown.
-- 🧭 **COLD-START**: New workspace turn → `ods overview` (snapshot) → `ods tag list` / `ods schema keys` if needed → `ods find --tag` / `--key` to locate a target → `ods context <id>`. Do not replace context with overview for deep work.
+- 💡 **WHY (token discipline)**: Prefer `ods read <id> [--section <heading>] [--summary] [--max-tokens N]` or `ods context <id> [--max-tokens N] [--print]` for a **bounded** read (depends + top-level `load` only — **not** `related`). Read only those sections/paths. Never dump the repo or use full graph export for routine Q&A. On “document not found”, run `ods find <query>` / `ods find --key …` — do not load all markdown.
+- 🧭 **COLD-START**: New workspace turn → `ods overview` → `ods schema keys` (ODS + OKF) → `ods find --key status=draft` / `--key "status=draft AND type=Dataset"` / `--tag` → `ods context <id>`. Combine keys: `--key a=1 --key b=2 --key-match and`.
 - 🚨 **ERRORS**: CLI prints `error:`/`usage:` + `Next:` (sometimes `Hint:`). Surface that Next line to the user; do not invent a different recovery. Common: not a workspace → `ods init`; miss → `ods find`; tags under `ods:` → `ods fmt --migrate`.
 - 👥 **WHO**: Operate seamlessly on behalf of non-technical or developer users without requiring manual terminal commands.
 - 📍 **WHERE**: Open `references/keys.md` only when authoring frontmatter; do not preload all references every turn.
@@ -94,16 +94,15 @@ name: "cache_strategy"
 author: "Alice Smith"
 reviewer: "Bob Jones"
 target_release: "v2.4"
+profile: rfc
+status: draft
+depends:
+  - docs/architecture/cache_overview.md
+related:
+  - docs/specs/api_endpoint.md
 tags:
   - caching
   - redis
-ods:
-  profile: rfc
-  status: draft
-  depends:
-    - docs/architecture/cache_overview.md
-  related:
-    - docs/specs/api_endpoint.md
 ---
 
 # Distributed Redis Caching Strategy
@@ -121,7 +120,7 @@ Custom profiles are registered in root `ods.toml` under `custom_profiles` (and v
 
 ```toml
 # root ods.toml
-spec = "0.1"
+spec = "2.0"
 
 custom_profiles = [
   ".ods/profiles/rfc.md",
@@ -166,7 +165,7 @@ custom_profiles = [
 | Command | Mastery Tier | Role & Syntax |
 |---|---|---|
 | **`ods lsp [--port N]`** | 🏁 Tier 1 (Novice) | Native JSON-RPC 2.0 Language Server for real-time editor lints, hover, definition, and completion. |
-| **`ods init [path]`** | 🏁 Tier 1 (Novice) | Initialize `ods.toml` with `spec = "0.1"` spec marker. `--adopt` drafts frontmatter on plain `.md` files. |
+| **`ods init [path]`** | 🏁 Tier 1 (Novice) | Initialize `ods.toml` with `spec = "2.0"` spec marker. `--adopt` drafts frontmatter on plain `.md` files. |
 | **`ods setup [path]`** | 🏁 Tier 1 (Novice) | Verify workspace boundary, check updates, register OS daemon. `--git-hooks` installs pre-commit hook. `--editor zed\|vscode\|nvim\|cursor` writes `ods lsp` config. |
 | **`ods lint [path]`** | 🏁 Tier 1 (Novice) | ODS validation by default (`--mode strict\|standard`, `--fix`, `--skip-frontmatter-keys`, `--ignore-keys k1,k2`, `--format text\|json\|sarif`). Auto-enables declared specs from root `ods.toml` `[specs.*]`. Add `--okf` / `--skills` for other specs. Never `--ods`. |
 | **`ods export graph`** | 🏁 Tier 1 (Novice) | Export workspace knowledge graph in structured JSON (`--format json`), Markdown (`--format md`), or text (`--format text`) for `--spec ods` (default) or `--spec okf`. |
@@ -180,7 +179,7 @@ custom_profiles = [
 | **`ods fmt [path]`** | 🛠️ Tier 2 (Practitioner) | Reformat YAML frontmatter and body spacing (`--refs md-paths` converts IDs to relative `.md` paths). |
 | **`ods stats [path]`** | 🛠️ Tier 2 (Practitioner) | Workspace document telemetry, graph density, profile distribution, and health score %. |
 | **`ods tree [path]`** | 🛠️ Tier 2 (Practitioner) | Visual ASCII/Unicode hierarchy tree of workspace folders and dependency graphs. |
-| **`ods context <id>`** | 📋 Tier 3 (Power User) | Bounded list (depends + context.load). `--max-tokens N`, `--print`, `--include-code`, `--tag`, `--key`. |
+| **`ods context <id>`** | 📋 Tier 3 (Power User) | Bounded list (depends + top-level `load`). `--max-tokens N`, `--print`, `--include-code`, `--tag`, `--key`. |
 | **`ods find [path]`** | 📋 Tier 3 (Power User) | Find docs by tag (`--tag`), schema/custom keys (`--key`, `--status`, `--profile`, `--owner`), and query (`--format text\|json`). |
 | **`ods tag list` / `show`** | 📋 Tier 3 (Power User) | List observed tags with doc counts or inspect docs matching a tag (`--format text\|json`). |
 | **`ods tag rename`** | 📋 Tier 3 (Power User) | Perform workspace-wide tag renaming (dry-run; `--write`). |
@@ -199,6 +198,6 @@ custom_profiles = [
 | **`ods clean [path]`** | 🏢 Tier 4 (Architect) | Clean `.ods/ods-errors.md`, `.ods/coverage.md`, and diagnostic cache files. |
 | **`ods coverage [path]`** | 🏢 Tier 4 (Architect) | Documentation health % (`--write-report` → `.ods/coverage.md`). |
 | **`ods start / stop`** | 🏢 Tier 4 (Architect) | Manage background user OS service (`systemd` / `launchd` / Windows Scheduled Task). |
-| **`ods serve --root <path>`**| 🏢 Tier 4 (Architect) | Headless daemon loop executed by background service. |
+| **`ods serve --root <path>`**| 🏢 Tier 4 (Architect) | Headless daemon loop (`--mode watch|poll`, `--memory-report`). Soft RSS budget: `[service].max_rss_mb` (default 10). |
 | **`ods doctor [path]`** | 🏢 Tier 4 (Architect) | Workspace health check (version, doc count, `ods.toml`, profile conflicts, service status). |
 | **`ods update`** | 🏢 Tier 4 (Architect) | Self-update CLI binary & restart background user service. |

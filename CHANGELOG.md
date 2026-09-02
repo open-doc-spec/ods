@@ -10,6 +10,8 @@ GitHub Releases use GitHub’s auto-generated notes. Edit this file by hand when
 ## [Unreleased]
 
 ### Breaking
+- **ODS 2.0 / 2.1 spec alignment:** flat top-level frontmatter (no `ods:` wrapper); workspace default `spec = "2.0"`; top-level `load` replaces nested `context.load`; `ods fmt --migrate` hoists legacy nested keys to flat layout.
+- OKF v0.2 superset keys in registry (`usage_window`, `resource`, …); engine-only frontmatter keys (`concept_id`, `trust_tier`, `attested`, `date_range`) removed from schema catalog.
 - Workspace marker is **`ods.toml`** only (no nested `index.ods.md` / no ODS `ods index` generation).
 - **`ods alias` / `ods aliases` and `ods.toml` `[aliases]` removed.** Profile section titles are exact (plus pipe-alternatives in the profile file). Help no longer lists those commands.
 - Compliance is **compliant | non-compliant** (no Level 0–3 ladder).
@@ -25,6 +27,10 @@ GitHub Releases use GitHub’s auto-generated notes. Edit this file by hand when
 - **Schema-driven disable strip lists** (`document_disable_strip_keys` / `workspace_policy_strip_keys`); shared `ChildGuard` for serve/watch test teardown (no leaked processes).
 
 ### Added
+- **ODS 2.1 ontology lint:** `TITLE-001`/`TITLE-002`, `ASSET-004` (`load`), `ONT-001`, `ENT-001`/`ENT-002`, `ENUM-006` (typed `related`); gated by `spec >= 2.1` or `@ods/pack-pareto-ontology`.
+- **`ods.toml` `[context]` / `[ontology]` / `[okf]`** tables; context traversal uses `default_max_depth` and top-level `load`.
+- **`ods schema keys`** default lists ODS + OKF keys with `queryable` + example `ods find --key` expressions.
+- **`ods context`** multi-key filter parity with `ods find` (`--key` repeatable, `--key-match`, `--profile`, `--owner`).
 - **`ods read [root] <id-or-path>`:** Fine-grained section extraction (`--section <heading>`), outline summary (`--summary`), and soft token cap controls (`--max-tokens N`, `--format text|json`). Prevents path traversal out of workspace.
 - **`ods find --key <expr>` & multi-criteria search:** query documents by schema keys and custom profile keys (`--key`, `--key-match and|or`, `--tag-match any|all`, `--status`, `--profile`, `--owner`). Supports comma multi-values (`--key status=draft,stable`), comma multi-keys, and simple `AND`/`OR` expressions. Value match is **exact** (case-insensitive).
 - **`ods tag list` & `ods tag show <tag>`:** list observed workspace tags with document counts or inspect documents carrying a specific tag (`--format text|json`). (`ods tags` / `ods tag rename` unchanged.)
@@ -33,7 +39,7 @@ GitHub Releases use GitHub’s auto-generated notes. Edit this file by hand when
 - **`ods context` filter fallback:** when the positional id is omitted, `--tag` / `--key` / `--status` may resolve a target **only if the match is unique**; multi-match fails with a short id list and `Next: ods find …`. Classic `ods context <id>` is unchanged.
 - **`ods profile init --register` (default):** scaffolds `.ods/profiles/<name>.md` and appends it under root `custom-profiles:` (use `--no-register` to skip). **`ods profile show <name>`** prints layer, sections, and required/optional/forbidden keys.
 - **`ods status <path-or-id> <draft|stable|deprecated|archived>`** lifecycle setter; **`ods archive`** remains an alias for `status … archived`.
-- **`ods context --explain`** / **`--include-related`**; hybrid **`--okf`** merges OKF link neighborhood after ODS depends/load; respects root `specs.okf.enabled`.
+- **Memory budget (≤10 MB serve SLA):** `ods_core::memory` RSS helpers; streaming graph parse; `LoadOptions::default()` graph mode; `ODS_LOW_MEMORY=1`, `ODS_MEM_REPORT=1`; serve strips bodies when over `[service].max_rss_mb`; `memory_budget_test` + `mem-serve.sh` in check-local.
 - **`ods undo --list`** lists machine backup snapshots; help clarifies undo is snapshot/bench restore, not full git undo.
 - Guide clarity: multi-spec flag rules in quickstart; context depends/related/load recipe; packs v1 = profile catalogs (honest scope); `--okf` command matrix in CLI help.
 
@@ -113,7 +119,7 @@ GitHub Releases use GitHub’s auto-generated notes. Edit this file by hand when
 - **Test coverage:** policy in `docs/maintainer/coverage.md`; scripts `coverage.sh` + `coverage-100-check.sh`; CI floor **75%** lines. New tests: OKF audit/model/init/parse (full surface), pipeline apply, model `CodeRole`/`ods` pin, CLI okf/upgrade/share/export/help. Engine (`ods-core`) ~**84%** lines; first modules at **100%**: `okf/audit`, `okf/model`, `pipeline/apply`.
 - **10K-oriented performance (no disk cache):**
   - Functional pipeline modules (`ods-core/src/pipeline/`): discover → parallel parse (`rayon`) → index.
-  - Graph commands (`lint`, `doctor`, `index`, `context`, `graph`, `find`, `tags`, `profiles`) load with `include_body: false` (note bodies dropped; **`index.md` bodies kept** for child-list rules).
+  - Graph commands (`lint`, `doctor`, `context`, `graph`, `find`, `tags`, `profiles`) load with `include_body: false` (frontmatter + headings only; bodies read from disk on demand for `read`/`fmt`).
   - `ods watch` / `serve` keep a long-lived workspace and reparse **dirty paths only** (full reload only on first tick or large dirty sets). `ODC_JOBS` caps parse threads.
   - Lint report `.ods/ods-errors.md` capped at 500 diagnostics + summary.
 - **Codebase Refactoring & <300 Line File Modularization**:

@@ -5,12 +5,10 @@ status: draft
 description: Copywriting and ad strategies for the Summer Glow campaign.
 related:
   - ../products/glow-serum.md
-context:
-  max-depth: 1
-  load:
-    - ../products/glow-serum.md
-  ignore:
-    - ../support/
+load:
+  - ../products/glow-serum.md
+ignore:
+  - ../support
 ---
 
 # Summer Glow Launch Campaign

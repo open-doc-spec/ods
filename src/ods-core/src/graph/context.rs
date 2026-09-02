@@ -139,11 +139,19 @@ pub fn resolve_context_with_options(
             }
         }
 
+        for reference in &frontmatter.load {
+            if let Some(p) = resolve_ref(reference) {
+                if !is_ignored(&p, &workspace.root, &ignore_rules) {
+                    next.push((p, format!("load from {from_label}")));
+                }
+            }
+        }
+
         if let Some(ctx) = &frontmatter.context {
             for reference in &ctx.load {
                 if let Some(p) = resolve_ref(reference) {
                     if !is_ignored(&p, &workspace.root, &ignore_rules) {
-                        next.push((p, format!("context.load from {from_label}")));
+                        next.push((p, format!("context.load from {from_label} (legacy)")));
                     }
                 }
             }
@@ -220,17 +228,17 @@ pub fn render_context_pack(paths: &[PathBuf], max_tokens: Option<usize>) -> Stri
 }
 
 fn context_ignore_rules(workspace: &Workspace, path: &Path) -> Vec<String> {
+    let mut rules = workspace.config.context.ignore.clone();
     let Some(document) = workspace.document_by_path(path) else {
-        return Vec::new();
+        return rules;
     };
     let Some(frontmatter) = frontmatter(document) else {
-        return Vec::new();
+        return rules;
     };
-    frontmatter
-        .context
-        .as_ref()
-        .map(|ctx| ctx.ignore.clone())
-        .unwrap_or_default()
+    if let Some(ctx) = &frontmatter.context {
+        rules.extend(ctx.ignore.clone());
+    }
+    rules
 }
 
 fn is_ignored(path: &Path, root: &Path, rules: &[String]) -> bool {
@@ -267,7 +275,11 @@ fn frontmatter(document: &crate::model::Document) -> Option<&crate::model::Front
 fn context_depth(workspace: &Workspace, path: &Path) -> Option<usize> {
     let document = workspace.document_by_path(path)?;
     let frontmatter = frontmatter(document)?;
-    frontmatter.context.as_ref()?.max_depth
+    // Per-document max_depth (legacy) overrides workspace default.
+    if let Some(depth) = frontmatter.context.as_ref().and_then(|c| c.max_depth) {
+        return Some(depth);
+    }
+    Some(workspace.config.context.default_max_depth)
 }
 
 /// Resolve a context query to a starting document path.

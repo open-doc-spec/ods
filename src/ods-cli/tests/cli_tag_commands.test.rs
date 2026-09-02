@@ -105,10 +105,11 @@ fn status_and_fmt_migrate_preserve_third_party_frontmatter_keys() {
     assert!(after_fmt.contains("author: Alice"), "{after_fmt}");
     assert!(after_fmt.contains("hero_image: /img.png"), "{after_fmt}");
     assert!(
-        after_fmt.contains("ods:\n  profile: note\n  status: stable")
-            || after_fmt.contains("ods:\n  profile: note\n  status: draft"),
+        after_fmt.contains("profile: note")
+            && (after_fmt.contains("status: stable") || after_fmt.contains("status: draft")),
         "{after_fmt}"
     );
+    assert!(!after_fmt.contains("ods:\n  profile:"), "{after_fmt}");
 
     let out = Command::new(ods_bin())
         .current_dir(&dir)
@@ -126,7 +127,7 @@ fn status_and_fmt_migrate_preserve_third_party_frontmatter_keys() {
 }
 
 #[test]
-fn fmt_migrate_flag_rewrites_legacy_frontmatter_to_nested_ods_block() {
+fn fmt_migrate_flag_hoists_nested_ods_to_flat_keys() {
     let dir = temp_workspace();
     let root = dir.to_str().unwrap();
     assert!(
@@ -139,7 +140,7 @@ fn fmt_migrate_flag_rewrites_legacy_frontmatter_to_nested_ods_block() {
     );
     fs::write(
         dir.join("legacy.md"),
-        "---\ndescription: Legacy doc\nprofile: guide\nstatus: draft\n---\n\n# Legacy\n",
+        "---\ndescription: Legacy doc\nods:\n  profile: guide\n  status: draft\n---\n\n# Legacy\n",
     )
     .unwrap();
 
@@ -152,11 +153,9 @@ fn fmt_migrate_flag_rewrites_legacy_frontmatter_to_nested_ods_block() {
     assert!(stdout.contains("ods: key layout"), "{stdout}");
 
     let body = fs::read_to_string(dir.join("legacy.md")).unwrap();
-    assert!(
-        body.contains("ods:\n  profile: guide\n  status: draft"),
-        "{body}"
-    );
-    assert!(!body.starts_with("---\nprofile:"), "{body}");
+    assert!(body.contains("profile: guide"), "{body}");
+    assert!(body.contains("status: draft"), "{body}");
+    assert!(!body.contains("ods:\n  profile:"), "{body}");
 }
 
 #[test]

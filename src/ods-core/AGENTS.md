@@ -4,9 +4,11 @@
 - Functional style: pure data + free functions; IO at edges
 - **User-facing messages SoT:** `error/messages.rs` (CLI lifecycle + high-volume lint diagnostics)
 - Multi-spec: `multi_spec/` + flags only (no namespaces); `ScopeResolveError::message()` delegates to the catalog
-- Frontmatter model: universal top-level tags; engine under nested `ods:`
+- Frontmatter model: **flat top-level keys** (ODS 2.0); engine keys are not nested under `ods:`
+- Workspace default: `spec = "2.0"` in `ods.toml`
 - Index canonical name: prefer `index.ods.md` (also accept `index.md`)
-- Root marker: scalar `ods` version on root index; custom profiles key `custom-profiles`
+- **`ods.toml` `[service]`** — `max_rss_mb = 10` soft budget for `ods serve`/`watch`; graph commands load frontmatter only (`include_body: false`). Set `ODS_LOW_MEMORY=1` for single-thread parse; `ODS_MEM_REPORT=1` prints `rss_kb` on exit (regression tests).
+- **Memory module:** `memory/mod.rs` — RSS sampling, `strip_workspace_bodies`, `DEFAULT_MAX_RSS_MB`
 - Spec docs: `specs/ods/` (not a runtime dependency — keep behavior aligned)
 
 ## Keys = schema registry

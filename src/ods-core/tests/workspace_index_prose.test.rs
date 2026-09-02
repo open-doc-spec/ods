@@ -1,4 +1,7 @@
-use ods_core::{AdoptOptions, adopt_workspace, lint_workspace, load_workspace, resolve_context};
+use ods_core::{
+    AdoptOptions, adopt_workspace, lint_workspace, load_options_with_bodies, load_workspace,
+    load_workspace_with_options, resolve_context,
+};
 use ods_test_support::temp_workspace;
 use std::fs;
 
@@ -17,7 +20,8 @@ fn test_body_link_validation() {
     )
     .expect("doc");
 
-    let workspace = load_workspace(&temp).expect("workspace");
+    let workspace =
+        load_workspace_with_options(&temp, load_options_with_bodies()).expect("workspace");
     let diagnostics = lint_workspace(&workspace);
 
     let dangling_errors = diagnostics
@@ -146,7 +150,7 @@ fn adopt_write_adds_minimal_frontmatter() {
     let report = adopt_workspace(&workspace, AdoptOptions { write: true }).expect("adopt");
     assert_eq!(report.written.len(), 1);
     let text = fs::read_to_string(temp.join("plain.md")).expect("read");
-    assert!(text.starts_with("---\nods:\n  profile: note\n  status: draft\n---\n"));
+    assert!(text.starts_with("---\nprofile: note\nstatus: draft\n---\n"));
     assert!(text.contains("# Plain"));
 }
 

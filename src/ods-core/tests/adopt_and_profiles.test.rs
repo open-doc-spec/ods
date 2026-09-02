@@ -197,5 +197,7 @@ fn adopt_preserves_existing_frontmatter_keys() {
     assert!(content.contains("title: Cache Strategy"));
     assert!(content.contains("author: Alice"));
     assert!(content.contains("sidebar_position: 2"));
-    assert!(content.contains("ods:\n  profile: guide\n  status: draft"));
+    assert!(content.contains("profile: guide"));
+    assert!(content.contains("status: draft"));
+    assert!(!content.contains("ods:\n  profile:"));
 }

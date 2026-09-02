@@ -189,13 +189,15 @@ fn profiles_list_and_init_profile_doc() {
     fs::create_dir_all(&prof_dir).unwrap();
     fs::write(
         prof_dir.join("custom.md"),
-        "---\nods:\n  custom_profile:\n    name: custom\n    required_keys:\n      - owner\n---\n\n# Custom\n\n## Overview\n\n## Details\n",
+        "---\ncustom_profile:\n  name: custom\n  required_keys:\n    - owner\n---\n\n# Custom\n\n## Overview\n\n## Details\n",
     )
     .unwrap();
-    // Register the exact profile-definition directory in ods.toml.
+    // Register the exact profile-definition directory in ods.toml (top-level key).
     let mut config = fs::read_to_string(dir.join("ods.toml")).unwrap();
-    let service = config.find("\n[service]").expect("service table");
-    config.insert_str(service, "\ncustom_profiles = [\"ods-profiles\"]\n");
+    if !config.ends_with('\n') {
+        config.push('\n');
+    }
+    config.push_str("custom_profiles = [\"ods-profiles\"]\n");
     fs::write(dir.join("ods.toml"), config).unwrap();
 
     let out = ods().args(["profiles", root]).output().unwrap();

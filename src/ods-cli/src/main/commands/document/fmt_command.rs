@@ -37,7 +37,8 @@ fn run_ods_fmt_body(
 ) -> Result<ExitCode, CliError> {
     let refs_mode = parse_refs_mode(args)?;
     let migrate = wants_migrate(args);
-    let workspace = load_workspace(root).map_err(|err| fail_load(root, err))?;
+    let workspace = load_workspace_with_options(root, load_options_graph())
+        .map_err(|err| fail_load(root, err))?;
 
     let mut actions: Vec<&str> = vec!["frontmatter spacing"];
     let mut changed = normalize_workspace_frontmatter_spacing_with_workspace(&workspace)
@@ -168,7 +169,7 @@ mod test_fmt_command {
     fn fmt_body_spacing_migrate_and_json() {
         let td = tempdir().unwrap();
         let root = td.path();
-        fs::write(root.join("ods.toml"), "spec = \"0.1\"\n").unwrap();
+        fs::write(root.join("ods.toml"), "spec = \"2.0\"\n").unwrap();
         fs::write(
             root.join("a.md"),
             "---\nlayout: post\nprofile: note\nstatus: draft\n---\n# A\n",
@@ -186,7 +187,8 @@ mod test_fmt_command {
         assert!(res.is_ok());
         let text = fs::read_to_string(root.join("a.md")).unwrap();
         assert!(text.contains("layout: post"), "{text}");
-        assert!(text.contains("ods:"), "{text}");
+        assert!(text.contains("profile: note"), "{text}");
+        assert!(!text.contains("ods:"), "{text}");
 
         // already clean second pass
         let res = run_fmt_command(&[
@@ -218,7 +220,7 @@ mod test_fmt_command {
     fn fmt_already_clean_text_and_json_empty_changed() {
         let td = tempdir().unwrap();
         let root = td.path();
-        fs::write(root.join("ods.toml"), "spec = \"0.1\"\n").unwrap();
+        fs::write(root.join("ods.toml"), "spec = \"2.0\"\n").unwrap();
         fs::write(
             root.join("a.md"),
             "---\nods:\n  profile: note\n  status: draft\n---\n\n# A\n",
@@ -238,7 +240,7 @@ mod test_fmt_command {
     fn fmt_refs_md_paths_and_text_output() {
         let td = tempdir().unwrap();
         let root = td.path();
-        fs::write(root.join("ods.toml"), "spec = \"0.1\"\n").unwrap();
+        fs::write(root.join("ods.toml"), "spec = \"2.0\"\n").unwrap();
         fs::write(
             root.join("a.md"),
             "---\nods:\n  profile: note\n  status: draft\n  depends:\n    - b\n---\n\n# A\n",

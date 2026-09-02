@@ -13,7 +13,7 @@ ods:
 2. Descend through child indexes toward the target document.
 3. Read the target frontmatter first.
 4. Load `depends` transitively up to `context.max-depth` (default 2).
-5. Load `context.load` entries: Document `.md` paths first, then Resource paths.
+5. Load top-level `load` entries: Document `.md` paths first, then Resource paths.
 6. Skip paths matching `context.ignore` and workspace `ignore:`.
 7. Prefer `stable` over `draft`, and `draft` over `deprecated` or `archived`.
 
@@ -53,7 +53,7 @@ ods workspaces path
 
 1. **`auto`** (default): Automatically selects `watch` mode, unless `ODS_LOW_MEMORY=1` is set in the environment, in which case it uses `poll` mode.
 2. **`watch`**: Real-time OS event watcher (fsnotify/kqueue/inotify) for immediate rename mapping and index regeneration.
-3. **`poll`**: Periodic polling interval (default 10s). Drops temporary workspace state between ticks for maximum RAM savings in low-memory containerized environments.
+3. **`poll`**: Periodic polling interval (default 10s). Keeps a long-lived graph workspace between ticks; strips document bodies when RSS exceeds `[service].max_rss_mb` (default 10 MB).
 
 ```bash
 # Low-memory polling configuration with RSS memory diagnostics

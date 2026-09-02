@@ -76,7 +76,10 @@ pub fn parse_nested_ods_map(
                 index = next;
             }
             "code" => {
-                let (items, next) = parse_code_refs(lines, index + 1, item_indent)?;
+                let (items, next, object_form) = parse_code_refs(lines, index + 1, item_indent)?;
+                if object_form {
+                    frontmatter.code_object_form = true;
+                }
                 frontmatter.code.extend(items);
                 index = next;
             }
@@ -171,6 +174,85 @@ pub fn parse_custom_profile_definition(
     }
 
     Ok((definition, index))
+}
+
+/// Parse `related` list: plain paths (2.0) or predicate shorthand (2.1).
+pub fn parse_related_list(
+    lines: &[&str],
+    start: usize,
+    min_indent: usize,
+    inline: &str,
+) -> Result<(Vec<RelatedEntry>, usize), String> {
+    const PARETO: &[&str] = &["is_a", "part_of", "owns", "governed_by", "maps_to"];
+
+    let mut entries = Vec::new();
+    let inline = inline.trim();
+    if !inline.is_empty() {
+        if inline.starts_with('[') && inline.ends_with(']') {
+            for raw in parse_inline_list(inline) {
+                entries.push(RelatedEntry::Path(
+                    raw.replace('\\', "/").to_lowercase(),
+                ));
+            }
+        }
+        return Ok((entries, start));
+    }
+
+    let mut index = start;
+    while let Some(raw_line) = lines.get(index) {
+        if raw_line.trim().is_empty() {
+            index += 1;
+            continue;
+        }
+        if indent(raw_line) < min_indent {
+            break;
+        }
+        let trimmed = raw_line.trim_start();
+        if let Some(item) = trimmed.strip_prefix("- ") {
+            let item = item.trim();
+            if let Some((pred, target)) = item.split_once(':') {
+                let pred = pred.trim();
+                let target = target.trim();
+                if PARETO.contains(&pred) {
+                    entries.push(RelatedEntry::Predicate {
+                        predicate: pred.to_string(),
+                        target: target.replace('\\', "/").to_lowercase(),
+                    });
+                } else if pred == "predicate" {
+                    // custom verb form handled in multi-line below
+                    entries.push(RelatedEntry::Path(
+                        target.replace('\\', "/").to_lowercase(),
+                    ));
+                } else {
+                    entries.push(RelatedEntry::Path(
+                        item.replace('\\', "/").to_lowercase(),
+                    ));
+                }
+            } else {
+                entries.push(RelatedEntry::Path(
+                    unquote(item).replace('\\', "/").to_lowercase(),
+                ));
+            }
+            index += 1;
+        } else if trimmed.starts_with("predicate:") {
+            // Multi-line custom: { predicate: custom, verb: X, target: Y }
+            let verb = lines
+                .get(index + 1)
+                .and_then(|l| l.trim().strip_prefix("verb:"))
+                .map(|v| v.trim().to_string());
+            let target = lines
+                .get(index + 2)
+                .and_then(|l| l.trim().strip_prefix("target:"))
+                .map(|v| v.trim().replace('\\', "/").to_lowercase());
+            if let (Some(verb), Some(target)) = (verb, target) {
+                entries.push(RelatedEntry::Custom { verb, target });
+            }
+            index += 3;
+        } else {
+            break;
+        }
+    }
+    Ok((entries, index))
 }
 
 fn parse_profile_key_list(

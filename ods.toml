@@ -1,5 +1,5 @@
 # ODS workspace configuration
-spec = "0.1"
+spec = "2.0"
 
 ignore = [
   "src/fixtures",

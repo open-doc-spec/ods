@@ -78,18 +78,80 @@ impl Default for SpecEngineToml {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ContextToml {
+    #[serde(default = "default_max_depth")]
+    pub default_max_depth: usize,
+    #[serde(default)]
+    pub auto_load_resources: bool,
+    #[serde(default)]
+    pub ignore: Vec<String>,
+}
+
+fn default_max_depth() -> usize {
+    2
+}
+
+impl Default for ContextToml {
+    fn default() -> Self {
+        Self {
+            default_max_depth: default_max_depth(),
+            auto_load_resources: false,
+            ignore: Vec::new(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct OntologyToml {
+    #[serde(default)]
+    pub default_domain: Option<String>,
+    #[serde(default)]
+    pub strict_schema: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct OkfToml {
+    #[serde(default = "default_true")]
+    pub enabled: bool,
+}
+
+impl Default for OkfToml {
+    fn default() -> Self {
+        Self { enabled: true }
+    }
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct AliasesToml {
+    #[serde(default)]
+    pub sections: std::collections::BTreeMap<String, serde_json::Value>,
+    #[serde(default)]
+    pub paths: std::collections::BTreeMap<String, String>,
+}
+
 /// Root workspace policy loaded from `ods.toml`.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct WorkspaceConfig {
-    /// Spec version string (e.g. `"0.1"`). Serde also accepts legacy key `ods`.
+    /// Spec version string (e.g. `"2.0"`). Serde also accepts legacy key `ods`.
     #[serde(default, alias = "ods")]
     pub spec: String,
+    #[serde(default)]
+    pub dialect: Option<String>,
     #[serde(default)]
     pub ignore: Vec<String>,
     #[serde(default, alias = "custom-profiles")]
     pub custom_profiles: Vec<String>,
     #[serde(default)]
     pub packs: Vec<String>,
+    #[serde(default)]
+    pub context: ContextToml,
+    #[serde(default)]
+    pub ontology: OntologyToml,
+    #[serde(default)]
+    pub aliases: AliasesToml,
+    #[serde(default)]
+    pub okf: OkfToml,
     #[serde(default)]
     pub specs: SpecsToml,
     #[serde(default)]
@@ -100,9 +162,14 @@ impl Default for WorkspaceConfig {
     fn default() -> Self {
         Self {
             spec: current_ods_spec_version().to_string(),
+            dialect: None,
             ignore: Vec::new(),
             custom_profiles: Vec::new(),
             packs: Vec::new(),
+            context: ContextToml::default(),
+            ontology: OntologyToml::default(),
+            aliases: AliasesToml::default(),
+            okf: OkfToml::default(),
             specs: SpecsToml::default(),
             service: ServiceConfig::default(),
         }
@@ -113,6 +180,23 @@ impl WorkspaceConfig {
     #[must_use]
     pub fn is_valid_marker(&self) -> bool {
         !self.spec.trim().is_empty()
+    }
+
+    #[must_use]
+    pub fn is_spec_21(&self) -> bool {
+        crate::model::is_spec_at_least(&self.spec, 2, 1)
+    }
+
+    #[must_use]
+    pub fn has_ontology_pack(&self) -> bool {
+        self.packs
+            .iter()
+            .any(|p| p.contains("pack-pareto-ontology"))
+    }
+
+    #[must_use]
+    pub fn ontology_enabled(&self) -> bool {
+        self.is_spec_21() || self.has_ontology_pack()
     }
 
     #[must_use]
@@ -145,6 +229,9 @@ pub fn render_ods_toml(config: &WorkspaceConfig) -> String {
     let mut out = String::new();
     out.push_str("# ODS workspace configuration\n");
     out.push_str(&format!("spec = \"{}\"\n", config.spec));
+    if let Some(d) = &config.dialect {
+        out.push_str(&format!("dialect = \"{d}\"\n"));
+    }
     if !config.ignore.is_empty() {
         out.push_str("\nignore = [\n");
         for p in &config.ignore {
@@ -174,6 +261,16 @@ pub fn render_ods_toml(config: &WorkspaceConfig) -> String {
             out.push_str("\n[specs.skills]\nenabled = true\n");
         }
     }
+    out.push_str("\n[context]\n");
+    out.push_str(&format!(
+        "default_max_depth = {}\n",
+        config.context.default_max_depth
+    ));
+    if config.context.auto_load_resources {
+        out.push_str("auto_load_resources = true\n");
+    }
+    out.push_str("\n[okf]\n");
+    out.push_str(&format!("enabled = {}\n", config.okf.enabled));
     out.push_str("\n[service]\n");
     out.push_str(&format!("mode = \"{}\"\n", config.service.mode));
     out.push_str(&format!("poll_secs = {}\n", config.service.poll_secs));
@@ -273,9 +370,14 @@ fn load_legacy_root_index_config(root: &Path) -> Option<WorkspaceConfig> {
                 spec: fm
                     .ods
                     .unwrap_or_else(|| current_ods_spec_version().to_string()),
+                dialect: None,
                 ignore: fm.ignore,
                 custom_profiles: fm.profiles,
                 packs: fm.packs,
+                context: ContextToml::default(),
+                ontology: OntologyToml::default(),
+                aliases: AliasesToml::default(),
+                okf: OkfToml::default(),
                 specs: SpecsToml {
                     okf: SpecEngineToml {
                         enabled: fm.specs.okf.enabled,

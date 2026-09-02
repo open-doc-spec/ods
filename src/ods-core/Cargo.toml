@@ -127,3 +127,11 @@ path = "tests/coverage_wave3_unit.test.rs"
 name = "coverage_wave5_finish_test"
 path = "tests/coverage_wave5_finish.test.rs"
 
+[[test]]
+name = "spec20_rules_test"
+path = "tests/spec20_rules_test.rs"
+
+[[test]]
+name = "spec20_conformance_test"
+path = "tests/spec20_conformance_test.rs"
+

@@ -11,7 +11,8 @@ fn run_tag_command(args: &[String]) -> Result<ExitCode, CliError> {
     match sub {
         "list" => {
             let (root, _level, format) = parse_common_flags(args, 3)?;
-            let workspace = load_workspace(&root).map_err(|err| fail_load(&root, err))?;
+            let workspace = load_workspace_with_options(&root, load_options_graph())
+                .map_err(|err| fail_load(&root, err))?;
             let usage = ods_core::tag_usage(&workspace);
 
             match format {
@@ -63,7 +64,8 @@ fn run_tag_command(args: &[String]) -> Result<ExitCode, CliError> {
                     ))
                 })?;
 
-            let workspace = load_workspace(&root).map_err(|err| fail_load(&root, err))?;
+            let workspace = load_workspace_with_options(&root, load_options_graph())
+                .map_err(|err| fail_load(&root, err))?;
             let docs = ods_core::docs_with_tag(&workspace, tag_name);
 
             match format {
@@ -139,7 +141,8 @@ fn run_tag_command(args: &[String]) -> Result<ExitCode, CliError> {
                 }
             };
             let workspace =
-                load_workspace(&root).map_err(|err| fail_load(&root, err))?;
+                load_workspace_with_options(&root, load_options_graph())
+                    .map_err(|err| fail_load(&root, err))?;
             let report = rename_tag_in_workspace(&workspace, &from, &to, write)
                 .map_err(|err| fail_io("tag rename", err))?;
             match format {

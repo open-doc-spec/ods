@@ -106,7 +106,7 @@ fn build_agents_md(root: &Path) -> String {
          5. After structural doc edits: `ods lint` (and `ods lint --okf` / `ods lint --skills` when those trees changed).\n\n\
          ## Token & context reliability\n\n\
          - Prefer `ods context <id>` (optional `--max-tokens N`, `--print`). Read **only** returned paths.\n\
-         - Context walks **depends + context.load** (not `related`). Code edges need `--include-code`.\n\
+         - Context walks **depends + top-level `load`** (not `related`). Code edges need `--include-code`.\n\
          - If context errors or is empty: **stop** — refine the id; do **not** dump the repo or full graph export.\n\
          - Do not use `ods export` for routine Q&A (writes under `.ods/graph.md` by default).\n",
     );

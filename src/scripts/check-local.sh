@@ -104,6 +104,10 @@ if [[ "$(basename "${ODS}")" == "ods" ]]; then
   rm -rf "${OKF_TMP}"
 fi
 
+if [ -f "${ROOT}/src/scripts/mem-serve.sh" ]; then
+  ODS_BIN="${ODS}" run "${ROOT}/src/scripts/mem-serve.sh"
+fi
+
 if [ -f "${ROOT}/src/action/scripts/test-action.sh" ]; then
   run "${ROOT}/src/action/scripts/test-action.sh"
 fi

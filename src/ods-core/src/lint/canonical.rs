@@ -184,6 +184,7 @@ fn lint_document(
             diagnostics.extend(lint_resources(document, frontmatter));
             diagnostics.extend(lint_code_refs(document, frontmatter));
             diagnostics.extend(lint_packs(workspace, document, frontmatter));
+            diagnostics.extend(lint_spec20_document(workspace, document, frontmatter));
             if !document.body.is_empty() {
                 diagnostics.extend(lint_body_links(document));
             }
@@ -211,6 +212,7 @@ fn required_key_is_present(frontmatter: &crate::model::Frontmatter, key: &str) -
         "related" => frontmatter.non_null_keys.contains("related"),
         "resources" => frontmatter.non_null_keys.contains("resources"),
         "code" => frontmatter.non_null_keys.contains("code"),
+        "load" => frontmatter.non_null_keys.contains("load"),
         "context" => frontmatter.non_null_keys.contains("context"),
         "owner" => frontmatter.owner.is_some(),
         "tags" => frontmatter.non_null_keys.contains("tags") && !frontmatter.tags_misplaced,
@@ -267,6 +269,13 @@ fn lint_root_ods_metadata(workspace: &Workspace) -> Vec<Diagnostic> {
     lint_root_config(workspace)
 }
 
+fn is_valid_workspace_spec(version: &str) -> bool {
+    matches!(
+        version.trim(),
+        "2.0" | "2.0.0" | "2.1" | "2.1.0" | "0.1"
+    )
+}
+
 fn lint_root_config(workspace: &Workspace) -> Vec<Diagnostic> {
     let mut diagnostics = Vec::new();
     let path = if crate::config::ods_toml_path(&workspace.root).is_file() {
@@ -276,7 +285,7 @@ fn lint_root_config(workspace: &Workspace) -> Vec<Diagnostic> {
     };
     let expected = crate::model::current_ods_spec_version();
     let version = workspace.config.spec.as_str();
-    if version != expected {
+    if !is_valid_workspace_spec(version) {
         diagnostics.push(Diagnostic {
             path,
             severity: Severity::Error,
@@ -298,6 +307,7 @@ fn lint_root_config(workspace: &Workspace) -> Vec<Diagnostic> {
 }
 
 include!("canonical_rules.rs");
+include!("spec20_rules.rs");
 
 fn lint_profile_sections(
     workspace: &Workspace,

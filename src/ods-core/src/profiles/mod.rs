@@ -1,5 +1,5 @@
 use crate::model::{Document, FrontmatterState, ProfileCatalog, ProfileDefinition};
-use crate::parse::{extract_heading_groups, parse_document_text};
+use crate::parse::{extract_profile_section_groups, parse_document_text};
 use std::collections::HashSet;
 use std::fs;
 use std::io;
@@ -252,7 +252,7 @@ fn profile_definition_from_document(document: &Document) -> Option<ProfileDefini
     let mut required_keys = Vec::new();
     let mut optional_keys = Vec::new();
     let mut forbidden_keys = Vec::new();
-    let sections = extract_heading_groups(&document.body);
+    let sections = extract_profile_section_groups(&document.body);
 
     if let FrontmatterState::Parsed(frontmatter) = &document.frontmatter {
         if let Some(definition) = &frontmatter.custom_profile {

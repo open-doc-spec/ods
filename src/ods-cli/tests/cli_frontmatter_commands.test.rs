@@ -128,7 +128,7 @@ fn setup_updates_stale_root_ods_version() {
     assert!(out.status.success(), "{:?}", out);
 
     let root = fs::read_to_string(dir.join("ods.toml")).unwrap();
-    assert!(root.contains("spec = \"0.1\""), "{root}");
+    assert!(root.contains("spec = \"2.0\""), "{root}");
 }
 
 #[test]
@@ -143,5 +143,5 @@ fn doctor_reports_stale_root_ods_version() {
     assert!(!out.status.success(), "{:?}", out);
     let stdout = String::from_utf8_lossy(&out.stdout);
     assert!(stdout.contains("root ods spec: draft-1"), "{stdout}");
-    assert!(stdout.contains("0.1"), "{stdout}");
+    assert!(stdout.contains("2.0"), "{stdout}");
 }

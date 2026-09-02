@@ -26,7 +26,7 @@ fn upgrade_rewrites_ods_cli_pin() {
     assert!(out.status.success(), "{:?}", out);
     let after = fs::read_to_string(&index).unwrap();
     assert!(
-        after.contains("spec = \"0.1\"") || after.contains("ods: 0.1"),
+        after.contains("spec = \"2.0\"") || after.contains("ods: 2.0"),
         "{after}"
     );
 

@@ -53,17 +53,22 @@ pub fn adopt_workspace(workspace: &Workspace, options: AdoptOptions) -> io::Resu
         };
 
         let (existing_fm, _) = split_frontmatter(&text);
-        let has_ods_key = existing_fm.is_some_and(|fm| {
+        let has_engine_keys = existing_fm.is_some_and(|fm| {
             fm.lines().any(|line| {
                 let trimmed = line.trim();
-                trimmed.starts_with("ods:")
-                    || trimmed
-                        .split_once(':')
-                        .is_some_and(|(k, _)| k.trim() == "ods")
+                if trimmed.starts_with("ods:") {
+                    return true;
+                }
+                trimmed.split_once(':').is_some_and(|(k, _)| {
+                    matches!(
+                        k.trim(),
+                        "profile" | "status" | "id" | "share" | "depends" | "related" | "load"
+                    )
+                })
             })
         });
 
-        if has_ods_key {
+        if has_engine_keys {
             report.skipped.push(document.path.clone());
         } else {
             report.would_write.push(document.path.clone());
@@ -84,13 +89,13 @@ fn write_minimal_frontmatter(path: &Path) -> io::Result<()> {
     let profile = infer_profile(body);
     let drafted = if let Some(fm) = existing_fm {
         format!(
-            "---\n{}\nods:\n  profile: {profile}\n  status: draft\n---\n\n{}",
+            "---\n{}\nprofile: {profile}\nstatus: draft\n---\n\n{}",
             fm.trim(),
             body.trim_start()
         )
     } else {
         format!(
-            "---\nods:\n  profile: {profile}\n  status: draft\n---\n\n{}",
+            "---\nprofile: {profile}\nstatus: draft\n---\n\n{}",
             body.trim_start()
         )
     };

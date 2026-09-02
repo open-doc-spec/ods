@@ -134,10 +134,6 @@ fn parse_code_refs_reject_missing_path_missing_role_and_invalid_role() {
             "code entry missing path",
         ),
         (
-            "---\ncode:\n  - path: src/a.ts\n---\n\n# D\n",
-            "code entry missing role",
-        ),
-        (
             "---\ncode:\n  - path: src/a.ts\n    role: controller\n---\n\n# D\n",
             "invalid code role: controller",
         ),
@@ -253,12 +249,13 @@ specs:
 fn test_hybrid_frontmatter_preservation_on_mutation() {
     let root = PathBuf::from("/ws");
     let text = r#"---
+profile: note
+status: draft
 layout: post
 author: Alice
 tags:
   - rust
   - ods
-status: draft
 ---
 
 # My Post
@@ -270,7 +267,7 @@ status: draft
 
     // Verify third-party custom keys parsed into custom_keys map
     assert!(fm.custom_keys.contains_key("layout"));
-    assert!(fm.custom_keys.contains_key("author"));
+    assert_eq!(fm.author.as_deref(), Some("Alice"));
     assert_eq!(fm.status.as_deref(), Some("draft"));
 
     // Verify fuzzy typo diagnostic checks
@@ -296,11 +293,11 @@ fn tag_rename_and_spacing_preserve_third_party_keys() {
 
 #[test]
 fn strip_ods_keeps_third_party_keys() {
-    let text = "---\nlayout: post\nauthor: Alice\nprofile: note\nstatus: draft\ndepends:\n  - other\n---\n\n# Body\n";
+    let text = "---\nlayout: post\nx-team: eng\nprofile: note\nstatus: draft\ndepends:\n  - other\n---\n\n# Body\n";
     let (next, changed) = ods_core::strip_ods_from_document_text(text, true, false);
     assert!(changed);
     assert!(next.contains("layout: post"), "{next}");
-    assert!(next.contains("author: Alice"), "{next}");
+    assert!(next.contains("x-team: eng"), "{next}");
     assert!(!next.contains("profile:"), "{next}");
     assert!(!next.contains("depends:"), "{next}");
     assert!(next.contains("# Body"), "{next}");

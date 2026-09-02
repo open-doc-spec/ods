@@ -47,7 +47,8 @@ pub(crate) fn run_read_command(args: &[String]) -> Result<ExitCode, CliError> {
     };
 
     let root = resolve_root_path(root_path);
-    let workspace = load_workspace(&root).map_err(|e| fail_load(&root, e))?;
+    let workspace = ods_core::load_workspace_with_options(&root, ods_core::load_options_graph())
+        .map_err(|e| fail_load(&root, e))?;
 
     let section = get_flag(args, "--section");
     let summary_only = args.iter().any(|a| a == "--summary");

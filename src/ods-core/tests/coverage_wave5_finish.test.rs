@@ -270,10 +270,10 @@ fn schema_json_is_valid_and_lists_root_keys() {
         "tags",
         "description",
         "owner",
-        "ods",
-        "packs",
-        "ignore",
-        "specs",
+        "profile",
+        "status",
+        "load",
+        "depends",
     ] {
         assert!(props.get(key).is_some(), "missing {key} in {raw}");
     }
@@ -286,6 +286,7 @@ fn skills_and_okf_schema_required_keys() {
     assert!(skills.keys.get("name").unwrap().required);
     assert!(skills.keys.get("description").unwrap().required);
     let okf = reg.get("okf").unwrap();
-    assert!(okf.keys.get("okf_version").unwrap().required);
-    assert!(okf.keys.get("type").unwrap().required);
+    assert!(okf.keys.contains_key("okf_version"));
+    assert!(okf.keys.contains_key("type"));
+    assert!(okf.keys.contains_key("usage_window"));
 }

@@ -25,7 +25,11 @@ fi
 
 out="$("$ODS" schema)"
 echo "$out" | grep -q 'tags' || { echo "error: ods schema missing tags"; exit 1; }
-echo "$out" | grep -q 'profile\|$schema' || { echo "error: ods schema missing engine shape"; exit 1; }
+echo "$out" | grep -q 'load' || { echo "error: ods schema missing load key"; exit 1; }
+
+keys_out="$("$ODS" schema keys)"
+echo "$keys_out" | grep -q 'load' || { echo "error: schema keys missing load"; exit 1; }
+echo "$keys_out" | grep -q 'entity' || { echo "error: schema keys missing entity (2.1)"; exit 1; }
 
 okf="$("$ODS" schema --okf)"
 echo "$okf" | grep -q 'okf_version' || { echo "error: schema --okf missing okf_version"; exit 1; }

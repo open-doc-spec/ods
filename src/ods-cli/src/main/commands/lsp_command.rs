@@ -46,6 +46,7 @@ struct LspSession<R, W> {
     writer: W,
     workspace_root: Option<PathBuf>,
     documents: HashMap<String, String>,
+    workspace_cache: Option<ods_core::Workspace>,
 }
 
 impl<R: BufRead, W: Write> LspSession<R, W> {
@@ -55,7 +56,22 @@ impl<R: BufRead, W: Write> LspSession<R, W> {
             writer,
             workspace_root: None,
             documents: HashMap::new(),
+            workspace_cache: None,
         }
+    }
+
+    fn invalidate_workspace_cache(&mut self) {
+        self.workspace_cache = None;
+    }
+
+    fn ensure_workspace(&mut self, root: &Path) -> io::Result<&ods_core::Workspace> {
+        if self.workspace_cache.is_none() {
+            self.workspace_cache = Some(
+                ods_core::load_workspace_with_options(root, ods_core::load_options_graph())
+                    .map_err(|e| io::Error::other(e.to_string()))?,
+            );
+        }
+        Ok(self.workspace_cache.as_ref().expect("workspace cache"))
     }
 
     fn run_loop(&mut self) -> Result<(), io::Error> {
@@ -100,6 +116,31 @@ impl<R: BufRead, W: Write> LspSession<R, W> {
                 }
                 "initialized" => {}
                 "workspace/didChangeWatchedFiles" | "workspace/didChangeWorkspaceFolders" => {
+                    if let Some(params) = req.get("params") {
+                        if let Some(changes) = params.get("changes").and_then(Value::as_array) {
+                            for change in changes {
+                                let deleted = change
+                                    .get("type")
+                                    .and_then(Value::as_u64)
+                                    .is_some_and(|t| t == 3);
+                                if deleted {
+                                    if let Some(uri) = change.get("uri").and_then(Value::as_str) {
+                                        if let Some(path) = uri_to_path(uri) {
+                                            if let Some(ref mut ws) = self.workspace_cache {
+                                                ods_core::remove_document(ws, &path);
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    self.invalidate_workspace_cache();
+                                }
+                            }
+                        } else {
+                            self.invalidate_workspace_cache();
+                        }
+                    } else {
+                        self.invalidate_workspace_cache();
+                    }
                     // Re-diagnose open documents against updated workspace state.
                     let uris: Vec<String> = self.documents.keys().cloned().collect();
                     for uri in uris {
@@ -140,6 +181,15 @@ impl<R: BufRead, W: Write> LspSession<R, W> {
                 "textDocument/didSave" => {
                     if let Some(params) = req.get("params") {
                         let uri = params.get("textDocument").and_then(|t| t.get("uri")).and_then(Value::as_str).unwrap_or("");
+                        if let (Some(root), Some(path)) = (self.workspace_root.as_deref(), uri_to_path(uri)) {
+                            if let Ok(doc) = ods_core::parse_path(root, path, false) {
+                                if let Some(ref mut ws) = self.workspace_cache {
+                                    ods_core::upsert_document(ws, doc);
+                                }
+                            } else {
+                                self.invalidate_workspace_cache();
+                            }
+                        }
                         self.publish_diagnostics_for_uri(uri)?;
                     }
                 }
@@ -276,8 +326,8 @@ impl<R: BufRead, W: Write> LspSession<R, W> {
         };
 
         if ods_core::ods_enabled(&root) {
-            if let Ok(ws) = load_workspace(&root) {
-                let diags = lint_workspace_with_level(&ws, LintLevel::Full);
+            if let Ok(ws) = self.ensure_workspace(&root) {
+                let diags = lint_workspace_with_level(ws, LintLevel::Full);
                 for diag in diags {
                     if diag.path == path || paths_equal(&diag.path, &path) {
                         lsp_diagnostics.push(json!({

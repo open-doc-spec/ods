@@ -1,5 +1,4 @@
-/// Canonical order of ODS engine keys inside the nested `ods:` map
-/// (specs/ods/keys.md "Canonical Key Sequence Rule").
+/// Canonical order of ODS 2.0 top-level engine keys (specs/ods/keys.md).
 ///
 /// Keep in lockstep with [`crate::spec::SpecSchema::canonical_engine_key_order`]
 /// (asserted in schema unit tests).
@@ -12,22 +11,18 @@ const CANONICAL_ODS_KEY_ORDER: [&str; 9] = [
     "related",
     "resources",
     "code",
-    "context",
+    "load",
 ];
 
 /// Universal top-level keys that must never live under `ods:`.
 /// When found nested, migrate hoists them to root (SSG / multi-tool interop).
 const UNIVERSAL_TOP_LEVEL_KEYS: [&str; 1] = ["tags"];
 
-/// Migrate one document's raw frontmatter text into canonical Pattern B
-/// shape: universal top-level keys (`description`, `tags`, `owner`, and any
-/// other non-engine top-level key) in their existing relative order,
-/// followed by a single `ods:` block with engine keys
-/// (`profile`/`status`/`id`/`share`/`depends`/`related`/`resources`/`code`/`context`)
-/// in canonical order.
+/// Migrate one document's raw frontmatter text into ODS 2.0 flat top-level layout:
+/// engine keys (`profile`, `status`, `id`, `share`, `depends`, `related`, `resources`, `code`, `load`)
+/// at the root (no nested `ods:` wrapper), with universal keys (`tags`, `description`, `owner`, …) preserved.
 ///
-/// Nested `tags` under `ods:` are **hoisted** to root (never dropped). Tags are
-/// universal domain metadata and must remain top-level for any tool to read.
+/// Legacy nested `ods:` maps are hoisted to flat keys; nested `context.load` becomes top-level `load`.
 ///
 /// Operates on raw text/lines, never on the parsed [`crate::model::Frontmatter`]
 /// struct, because that struct is lossy for `owner` and `code[].symbol`
@@ -61,13 +56,23 @@ pub fn migrate_frontmatter_to_canonical(text: &str) -> Option<String> {
     let mut had_flat_engine = false;
 
     for (position, block) in blocks.iter().enumerate() {
-        if let Some(&canonical_key) = CANONICAL_ODS_KEY_ORDER.iter().find(|k| **k == block.key) {
+        if block.key == "context" {
             had_flat_engine = true;
-            engine.insert(canonical_key, (position, reindent(&block.lines, 2)));
+            if let Some(load_lines) = extract_context_load_lines(&block.lines) {
+                engine.insert("load", (position, load_lines));
+            }
+        } else if let Some(&canonical_key) = CANONICAL_ODS_KEY_ORDER.iter().find(|k| **k == block.key)
+        {
+            had_flat_engine = true;
+            engine.insert(canonical_key, (position, block.lines.clone()));
         } else if block.key == "ods" {
             had_nested_ods = true;
             for sub in group_sub_blocks(&block.lines[1..], 2) {
-                if let Some(&canonical_key) =
+                if sub.key == "context" {
+                    if let Some(load_lines) = extract_context_load_lines(&sub.lines) {
+                        engine.insert("load", (position, load_lines));
+                    }
+                } else if let Some(&canonical_key) =
                     CANONICAL_ODS_KEY_ORDER.iter().find(|k| **k == sub.key)
                 {
                     let candidate_wins = match engine.get(canonical_key) {
@@ -101,7 +106,8 @@ pub fn migrate_frontmatter_to_canonical(text: &str) -> Option<String> {
     let mut new_frontmatter_lines: Vec<String> = Vec::new();
     let mut root_tags_emitted = false;
     for block in &blocks {
-        let is_engine_key = CANONICAL_ODS_KEY_ORDER.contains(&block.key.as_str());
+        let is_engine_key = CANONICAL_ODS_KEY_ORDER.contains(&block.key.as_str())
+            || block.key == "context";
         if is_engine_key || block.key == "ods" {
             continue;
         }
@@ -125,15 +131,19 @@ pub fn migrate_frontmatter_to_canonical(text: &str) -> Option<String> {
     }
 
     if !engine.is_empty() || !unknown_nested.is_empty() {
-        new_frontmatter_lines.push("ods:".to_string());
+        // ODS 2.0: flat top-level engine keys (no `ods:` wrapper).
         for key in CANONICAL_ODS_KEY_ORDER {
             if let Some((_, lines)) = engine.get(key) {
-                new_frontmatter_lines.extend(lines.iter().cloned());
+                let indent = if had_nested_ods && lines.first().is_some_and(|l| l.starts_with("  ")) {
+                    2
+                } else {
+                    0
+                };
+                new_frontmatter_lines.extend(deindent(lines, indent));
             }
         }
-        // Append unknown nested keys after canonical engine keys (original encounter order).
         for lines in &unknown_nested {
-            new_frontmatter_lines.extend(lines.iter().cloned());
+            new_frontmatter_lines.extend(deindent(lines, 2));
         }
     }
 
@@ -149,6 +159,42 @@ pub fn migrate_frontmatter_to_canonical(text: &str) -> Option<String> {
         None
     } else {
         Some(out)
+    }
+}
+
+/// Pull `load:` list lines from a legacy `context:` block for 2.0 migration.
+fn extract_context_load_lines(ctx_lines: &[String]) -> Option<Vec<String>> {
+    let mut in_load = false;
+    let mut out = Vec::new();
+    for line in ctx_lines {
+        let trimmed = line.trim();
+        if trimmed.starts_with("load:") {
+            in_load = true;
+            if let Some(rest) = trimmed.strip_prefix("load:").map(str::trim) {
+                if !rest.is_empty() {
+                    out.push(format!("load: {rest}"));
+                    in_load = false;
+                }
+            }
+            continue;
+        }
+        if in_load {
+            if trimmed.starts_with("- ") {
+                let item = deindent(std::slice::from_ref(line), 4);
+                if let Some(first) = item.into_iter().next() {
+                    out.push(first);
+                }
+            } else if !trimmed.is_empty() && !trimmed.ends_with(':') {
+                in_load = false;
+            }
+        }
+    }
+    if out.is_empty() {
+        None
+    } else {
+        let mut block = vec!["load:".to_string()];
+        block.extend(out);
+        Some(block)
     }
 }
 
@@ -348,12 +394,6 @@ fn group_blocks<'a>(lines: impl Iterator<Item = &'a str>, key_indent: usize) -> 
         }
     }
     blocks
-}
-
-/// Prefix every line in `lines` with `extra` additional spaces of indentation.
-fn reindent(lines: &[String], extra: usize) -> Vec<String> {
-    let pad = " ".repeat(extra);
-    lines.iter().map(|line| format!("{pad}{line}")).collect()
 }
 
 fn indent(line: &str) -> usize {
