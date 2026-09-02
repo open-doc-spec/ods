@@ -15,13 +15,20 @@ fn parse_passthrough_block(lines: &[&str], start: usize, min_indent: usize) -> (
     ((), index)
 }
 
-fn parse_resource_kv(text: &str, path: &mut Option<PathBuf>) -> Result<(), String> {
+fn parse_resource_kv(
+    text: &str,
+    path: &mut Option<PathBuf>,
+    url: &mut Option<String>,
+) -> Result<(), String> {
     let Some((key, rest)) = text.split_once(':') else {
         return Err(format!("invalid resource entry: {text}"));
     };
 
-    if key.trim() == "path" {
-        *path = Some(PathBuf::from(unquote(rest.trim())));
+    match key.trim() {
+        "path" => *path = Some(PathBuf::from(unquote(rest.trim()))),
+        // `url:` values contain their own `://`, so re-join the split remainder.
+        "url" => *url = Some(unquote(rest.trim()).to_string()),
+        _ => {}
     }
 
     Ok(())

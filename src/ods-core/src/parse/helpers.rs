@@ -58,7 +58,8 @@ fn parse_resources(
             let item_trimmed = item.trim();
             if item_trimmed.contains(':') {
                 let mut path = None;
-                parse_resource_kv(item_trimmed, &mut path)?;
+                let mut url = None;
+                parse_resource_kv(item_trimmed, &mut path, &mut url)?;
                 index += 1;
                 while let Some(inner) = lines.get(index) {
                     if inner.trim().is_empty() {
@@ -68,18 +69,29 @@ fn parse_resources(
                     if indent(inner) < min_indent + 2 {
                         break;
                     }
-                    parse_resource_kv(inner.trim(), &mut path)?;
+                    parse_resource_kv(inner.trim(), &mut path, &mut url)?;
                     index += 1;
                 }
 
-                if let Some(path) = path {
-                    resources.push(ResourceRef { path });
+                // A mapping with neither `path` nor `url` is retained as an empty entry
+                // so ASSET-005 can report it rather than silently dropping the item.
+                if path.is_some() || url.is_some() {
+                    resources.push(ResourceRef {
+                        path: path.unwrap_or_default(),
+                        url,
+                    });
+                } else {
+                    resources.push(ResourceRef {
+                        path: PathBuf::new(),
+                        url: None,
+                    });
                 }
                 continue;
             }
 
             resources.push(ResourceRef {
                 path: PathBuf::from(unquote(item_trimmed)),
+                url: None,
             });
             index += 1;
         } else {

@@ -1,6 +1,7 @@
 //! Process RSS sampling and soft memory budgets for graph/service paths.
 
 use crate::model::Workspace;
+#[cfg(any(target_os = "windows", target_os = "macos"))]
 use std::process::Command;
 
 /// Default soft RSS budget (MiB) for `ods serve` and memory regression tests.

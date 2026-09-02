@@ -45,16 +45,7 @@ pub(super) fn lint_references(
         }
     }
 
-    for load in &frontmatter.load {
-        let path = normalize_join(&document.directory, Path::new(load));
-        if !path.exists() {
-            diagnostics.push(Diagnostic {
-                path: document.path.clone(),
-                severity: Severity::Error,
-                message: crate::error::lint_missing_load_path(load),
-            });
-        }
-    }
+    // Top-level `load` existence is ASSET-004, emitted once from `spec20_rules`.
 
     if let Some(context) = &frontmatter.context {
         for load in &context.load {

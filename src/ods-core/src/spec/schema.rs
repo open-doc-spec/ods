@@ -748,13 +748,8 @@ pub fn validate_ods_frontmatter(frontmatter: &Frontmatter) -> Vec<SchemaIssue> {
         });
     }
 
-    // Prefer H1 title; frontmatter title: is preserved but discouraged for ODS purity.
-    if frontmatter.title.is_some() {
-        issues.push(SchemaIssue {
-            severity: Severity::Warning,
-            message: crate::error::lint_title_discouraged(),
-        });
-    }
+    // `title` is a first-class ODS 2.0 key; TITLE-001/002 in spec20_rules check it
+    // against the H1 rather than discouraging its use.
 
     for key_name in frontmatter.custom_keys.keys() {
         if let Some(similar) = schema.find_similar_key(key_name) {

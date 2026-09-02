@@ -58,7 +58,10 @@ pub struct Diagnostic {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ResourceRef {
+    /// Local path. Empty for a `url`-only entry (ODS 2.1 allows exactly one of the two).
     pub path: PathBuf,
+    /// External URL, when the entry was written as a mapping with `url:`.
+    pub url: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
