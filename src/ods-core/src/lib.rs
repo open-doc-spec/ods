@@ -7,6 +7,7 @@ pub mod fs;
 pub mod graph;
 pub mod lifecycle;
 pub mod lint;
+pub mod memory;
 pub mod model;
 pub mod multi_spec;
 pub mod mutate;
@@ -50,9 +51,9 @@ pub use bench::{
 
 pub use fs::{
     ReadOptions, ReadResult, SectionOutline, find_workspace_root, load_options_graph,
-    load_workspace, load_workspace_with_options, normalize_join, normalize_path,
-    path_matches_workspace_ignore, read_document_content, rebuild_indexes, remove_document,
-    upsert_document,
+    load_options_with_bodies, load_workspace, load_workspace_with_options, normalize_join,
+    normalize_path, path_matches_workspace_ignore, read_document_content, rebuild_indexes,
+    remove_document, upsert_document,
 };
 pub use graph::{
     ContextOptions, ContextResult, canonical_document_ref, canonical_document_ref_for_reference,
@@ -66,6 +67,7 @@ pub use lifecycle::{
     init_workspace, ods_enabled, ods_enabled_for_path, scaffold_new_document,
     strip_ods_from_document_text,
 };
+pub use memory::{DEFAULT_MAX_RSS_MB, current_rss_kb, rss_over_budget, strip_workspace_bodies};
 pub use mutate::{AdoptOptions, AdoptReport, adopt_workspace};
 pub use observe::{
     TreeSnapshot, WatchTree, observe_renames, paired_from_paths, scan_markdown_tree,
@@ -90,7 +92,8 @@ pub use model::{
     CodeRef, CodeRole, ComplianceMode, CustomProfileDefinition, CustomValue, Diagnostic, Document,
     Frontmatter, FrontmatterState, LintLevel, LoadOptions, ProfileCatalog, ProfileConflict,
     ProfileDefinition, ResourceRef, Severity, SpecLintConfig, Workspace, WorkspaceCompliance,
-    WorkspaceSpecsConfig, current_ods_spec_version, current_ods_version,
+    WorkspaceSpecsConfig, current_ods_spec_version, current_ods_version, is_spec_at_least,
+    parse_spec_version,
 };
 pub use mv::{
     PathChange, PathChangeReport, apply_path_changes, canonicalize_workspace_document_refs,

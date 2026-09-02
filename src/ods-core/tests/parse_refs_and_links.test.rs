@@ -22,9 +22,10 @@ fn document_id_path_and_explicit() {
 #[test]
 fn extract_headings_and_groups() {
     let body = "# T\n\n## Goal\n\n## Scope\n";
-    assert_eq!(extract_headings(body), vec!["Goal", "Scope"]);
+    assert_eq!(extract_headings(body), vec!["T", "Goal", "Scope"]);
     let groups = extract_heading_groups(body);
-    assert_eq!(groups[0], vec!["Goal"]);
+    assert_eq!(groups[0], vec!["T"]);
+    assert_eq!(groups[1], vec!["Goal"]);
 }
 
 #[test]
@@ -54,7 +55,7 @@ fn include_body_false_still_has_headings() {
     let text = "---\nprofile: note\n---\n\n# T\n\n## Overview\n";
     let doc = parse_document_text(&root, root.join("d.md"), text, false);
     assert!(doc.body.is_empty());
-    assert_eq!(doc.headings, vec!["Overview"]);
+    assert_eq!(doc.headings, vec!["T", "Overview"]);
 }
 
 #[test]

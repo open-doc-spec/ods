@@ -63,7 +63,7 @@ fn load_graph_options_and_parallel() {
         .iter()
         .find(|d| d.path.ends_with("index.md"))
         .unwrap();
-    assert!(!index.body.is_empty()); // index keeps body
+    assert!(index.body.is_empty()); // graph load drops all bodies
 
     let paths: Vec<_> = ws.documents.iter().map(|d| d.path.clone()).collect();
     let docs = parse_paths_parallel(root, &paths, true).unwrap();

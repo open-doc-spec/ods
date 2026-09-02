@@ -1,5 +1,6 @@
 use crate::model::{
-    CodeRef, CodeRole, ContextSpec, Document, Frontmatter, FrontmatterState, ResourceRef,
+    CodeRef, CodeRole, ContextSpec, Document, Frontmatter, FrontmatterState, RelatedEntry,
+    ResourceRef,
 };
 use std::fs;
 use std::io;
@@ -94,16 +95,29 @@ pub fn extract_heading_groups(body: &str) -> Vec<Vec<String>> {
     body.lines()
         .filter_map(|line| {
             let trimmed = line.trim();
-            if let Some(h) = trimmed.strip_prefix("## ") {
+            let heading = if let Some(h) = trimmed.strip_prefix("## ") {
                 Some(h.trim())
             } else if let Some(h) = trimmed.strip_prefix("### ") {
                 Some(h.trim())
             } else {
-                None
-            }
+                trimmed.strip_prefix("# ").map(|h| h.trim())
+            };
+            heading.filter(|h| !h.is_empty()).map(parse_heading_group)
         })
-        .filter(|heading| !heading.is_empty())
-        .map(parse_heading_group)
+        .collect()
+}
+
+/// Profile catalog sections (`##` / `###` only — H1 is the profile title, not a section).
+pub fn extract_profile_section_groups(body: &str) -> Vec<Vec<String>> {
+    body.lines()
+        .filter_map(|line| {
+            let trimmed = line.trim();
+            let heading = trimmed
+                .strip_prefix("## ")
+                .map(|h| h.trim())
+                .or_else(|| trimmed.strip_prefix("### ").map(|h| h.trim()));
+            heading.filter(|h| !h.is_empty()).map(parse_heading_group)
+        })
         .collect()
 }
 
@@ -172,11 +186,22 @@ fn parse_frontmatter(block: &str) -> Result<Frontmatter, String> {
                     frontmatter.owner = scalar_value(rest);
                 }
             }
+            "author" => frontmatter.author = scalar_value(rest),
+            "entity" => frontmatter.entity = scalar_value(rest),
+            "domain" => frontmatter.domain = scalar_value(rest),
+            "schema" => frontmatter.schema_path = scalar_value(rest),
+            "type" => frontmatter.concept_type = scalar_value(rest),
+            "resource" => frontmatter.resource = scalar_value(rest),
+            "okf_version" => frontmatter.okf_version = scalar_value(rest),
+            "runtime" => frontmatter.runtime = scalar_value(rest),
+            "computation" => frontmatter.computation = scalar_value(rest),
+            "stale_after" => frontmatter.stale_after = scalar_value(rest),
             "ods" => {
                 if !rest.is_empty() {
                     frontmatter.ods = scalar_value(rest).map(|s| s.to_lowercase());
                 } else {
-                    // Parse nested ods: map block
+                    frontmatter.ods_wrapper = true;
+                    // Parse nested ods: map block (legacy — migrate hoists to flat)
                     let (nested_fm, next) = parse_nested_ods_map(&lines, index, 2)?;
                     if nested_fm.profile.is_some() {
                         frontmatter.profile = nested_fm.profile;
@@ -208,8 +233,9 @@ fn parse_frontmatter(block: &str) -> Result<Frontmatter, String> {
                     if !nested_fm.code.is_empty() {
                         frontmatter.code.extend(nested_fm.code);
                     }
-                    if nested_fm.context.is_some() {
-                        frontmatter.context = nested_fm.context;
+                    if let Some(ctx) = nested_fm.context {
+                        frontmatter.load.extend(ctx.load.clone());
+                        frontmatter.context = Some(ctx);
                     }
                     if nested_fm.custom_profile.is_some() {
                         frontmatter.custom_profile = nested_fm.custom_profile;
@@ -258,13 +284,24 @@ fn parse_frontmatter(block: &str) -> Result<Frontmatter, String> {
                 index = next;
             }
             "related" => {
+                let (entries, next) = parse_related_list(&lines, index, 2, rest)?;
+                for entry in entries {
+                    match entry {
+                        RelatedEntry::Path(p) => frontmatter.related.push(p),
+                        other => frontmatter.related_entries.push(other),
+                    }
+                }
+                mark_non_null_key(&mut frontmatter, "related", rest, index, next);
+                index = next;
+            }
+            "load" => {
                 let (items, next) = parse_string_list(&lines, index, 2, rest);
-                frontmatter.related.extend(
+                frontmatter.load.extend(
                     items
                         .into_iter()
-                        .map(|s| s.replace("\\", "/").to_lowercase()),
+                        .map(|s| s.replace('\\', "/")),
                 );
-                mark_non_null_key(&mut frontmatter, "related", rest, index, next);
+                mark_non_null_key(&mut frontmatter, "load", rest, index, next);
                 index = next;
             }
             "tags" => {
@@ -285,8 +322,11 @@ fn parse_frontmatter(block: &str) -> Result<Frontmatter, String> {
                 index = next;
             }
             "code" => {
-                let (items, next) = parse_code_refs(&lines, index, 2)?;
+                let (items, next, object_form) = parse_code_refs(&lines, index, 2)?;
                 frontmatter.code.extend(items);
+                if object_form {
+                    frontmatter.code_object_form = true;
+                }
                 mark_non_null_key(&mut frontmatter, "code", rest, index, next);
                 index = next;
             }

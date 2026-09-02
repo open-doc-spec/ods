@@ -1,8 +1,11 @@
 use crate::fs::normalize_join;
-use crate::model::{Diagnostic, Document, FrontmatterState, LintLevel, Severity, Workspace};
+use crate::model::{
+    Diagnostic, Document, Frontmatter, FrontmatterState, LintLevel, RelatedEntry, Severity,
+    Workspace,
+};
 use crate::parse::{document_id, split_markdown_link_target};
-use std::collections::{BTreeMap, BTreeSet, HashSet};
-use std::path::Path;
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
+use std::path::{Path, PathBuf};
 
 pub fn known_profiles(workspace: &Workspace) -> Vec<String> {
     workspace
@@ -69,6 +72,7 @@ pub fn lint_workspace_with_ref_style(
 
     diagnostics.extend(lint_duplicate_ids(&ids));
     diagnostics.extend(lint_cycles(workspace, &ids));
+    diagnostics.extend(lint_spec21_entities(workspace));
 
     diagnostics
 }

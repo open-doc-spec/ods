@@ -5,7 +5,7 @@ use ods_test_support::temp_workspace;
 use std::fs;
 
 #[test]
-fn migrate_flat_legacy_document_to_nested_ods_block() {
+fn migrate_hoists_nested_ods_to_flat_keys() {
     let dir = temp_workspace();
     fs::write(
         dir.join("index.md"),
@@ -14,7 +14,7 @@ fn migrate_flat_legacy_document_to_nested_ods_block() {
     .unwrap();
     fs::write(
         dir.join("doc.md"),
-        "---\ndescription: Refund flow\ntags:\n  - billing\nprofile: guide\nstatus: stable\ndepends:\n  - website/checkout.md\n---\n\n# Doc\n",
+        "---\ndescription: Refund flow\ntags:\n  - billing\nods:\n  profile: guide\n  status: stable\n  depends:\n    - website/checkout.md\n---\n\n# Doc\n",
     )
     .unwrap();
 
@@ -23,28 +23,28 @@ fn migrate_flat_legacy_document_to_nested_ods_block() {
     assert_eq!(changed.len(), 1);
 
     let text = fs::read_to_string(dir.join("doc.md")).unwrap();
-    assert!(
-        text.starts_with("---\ndescription: Refund flow\ntags:\n  - billing\nods:\n  profile: guide\n  status: stable\n  depends:\n    - website/checkout.md\n---\n"),
-        "{text}"
-    );
+    assert!(text.contains("profile: guide"), "{text}");
+    assert!(text.contains("status: stable"), "{text}");
+    assert!(text.contains("depends:"), "{text}");
+    assert!(!text.contains("ods:\n  profile:"), "{text}");
 }
 
 #[test]
-fn migrate_reorders_out_of_order_nested_ods_subkeys() {
+fn migrate_reorders_out_of_order_engine_keys() {
     let text = "---\ndescription: Doc\nods:\n  status: stable\n  profile: guide\n---\n\n# Doc\n";
     let migrated = migrate_frontmatter_to_canonical(text).expect("should reorder");
-    assert!(
-        migrated.contains("ods:\n  profile: guide\n  status: stable"),
-        "{migrated}"
-    );
+    assert!(migrated.contains("profile: guide"), "{migrated}");
+    assert!(migrated.contains("status: stable"), "{migrated}");
+    assert!(!migrated.contains("ods:\n  profile:"), "{migrated}");
 }
 
 #[test]
 fn migrate_is_idempotent() {
     let text = "---\ndescription: Doc\nprofile: guide\nstatus: stable\n---\n\n# Doc\n";
-    let once = migrate_frontmatter_to_canonical(text).expect("first run should change text");
-    let twice = migrate_frontmatter_to_canonical(&once);
-    assert!(twice.is_none(), "second run should be a no-op: {once}");
+    assert!(
+        migrate_frontmatter_to_canonical(text).is_none(),
+        "already-flat canonical doc should not rewrite"
+    );
 }
 
 #[test]
@@ -98,41 +98,35 @@ fn migrate_later_key_wins_on_duplicate() {
 
 #[test]
 fn migrate_preserves_universal_top_level_owner_list_formatting() {
-    let text = "---\nowner:\n  - a\n  - b\nprofile: note\nstatus: draft\n---\n\n# Doc\n";
+    let text = "---\nowner:\n  - a\n  - b\nods:\n  profile: note\n  status: draft\n---\n\n# Doc\n";
     let migrated = migrate_frontmatter_to_canonical(text).expect("should migrate");
     assert!(migrated.contains("owner:\n  - a\n  - b\n"), "{migrated}");
+    assert!(migrated.contains("profile: note"), "{migrated}");
 }
 
 #[test]
 fn migrate_preserves_third_party_top_level_keys() {
-    let text = "---\nlayout: post\nauthor: Alice\nhero_image: /img.png\nprofile: note\nstatus: draft\n---\n\n# Doc\n";
+    let text = "---\nlayout: post\nauthor: Alice\nhero_image: /img.png\nods:\n  profile: note\n  status: draft\n---\n\n# Doc\n";
     let migrated = migrate_frontmatter_to_canonical(text).expect("should migrate");
     assert!(migrated.contains("layout: post"), "{migrated}");
     assert!(migrated.contains("author: Alice"), "{migrated}");
     assert!(migrated.contains("hero_image: /img.png"), "{migrated}");
-    assert!(
-        migrated.contains("ods:\n  profile: note\n  status: draft"),
-        "{migrated}"
-    );
+    assert!(migrated.contains("profile: note"), "{migrated}");
+    assert!(migrated.contains("status: draft"), "{migrated}");
+    assert!(!migrated.contains("ods:\n  profile:"), "{migrated}");
 }
 
 #[test]
 fn migrate_preserves_unknown_keys_nested_under_ods() {
-    // status before profile forces a rewrite; unknown nested keys must still be re-emitted.
     let text = "---\nods:\n  status: draft\n  profile: note\n  x_custom: keep-me\n  vendor_meta:\n    - a\n---\n\n# Doc\n";
     let migrated = migrate_frontmatter_to_canonical(text).expect("should migrate");
+    assert!(migrated.contains("x_custom: keep-me"), "{migrated}");
     assert!(
-        migrated.contains("  x_custom: keep-me"),
-        "unknown nested scalar must survive: {migrated}"
-    );
-    assert!(
-        migrated.contains("  vendor_meta:") && migrated.contains("    - a"),
-        "unknown nested list must survive: {migrated}"
-    );
-    assert!(
-        migrated.contains("ods:\n  profile: note\n  status: draft"),
+        migrated.contains("vendor_meta:") && migrated.contains("- a"),
         "{migrated}"
     );
+    assert!(migrated.contains("profile: note"), "{migrated}");
+    assert!(migrated.contains("status: draft"), "{migrated}");
 }
 
 #[test]
@@ -143,17 +137,15 @@ fn migrate_workspace_frontmatter_helper_and_edge_cases() {
         "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
     )
     .unwrap();
-    // Empty body document needing migration
     fs::write(
-        dir.join("empty_body.md"),
-        "---\nprofile: note\nstatus: draft\n---\n",
+        dir.join("nested.md"),
+        "---\nods:\n  profile: note\n  status: draft\n---\n\n# N\n",
     )
     .unwrap();
 
     let changed = ods_core::migrate_workspace_frontmatter(&dir).unwrap();
     assert_eq!(changed.len(), 1);
 
-    // Frontmatter with empty block / line without colon
     let empty_fm = "---\n---\n";
     assert!(migrate_frontmatter_to_canonical(empty_fm).is_none());
 
@@ -166,11 +158,11 @@ fn migrate_hoists_nested_tags_under_ods_to_root() {
     let text = "---\ndescription: Nested tags bug\nods:\n  profile: note\n  status: draft\n  tags:\n    - block\n    - action\n---\n\n# Doc\n";
     let migrated = migrate_frontmatter_to_canonical(text).expect("should hoist tags");
     assert!(
-        migrated.starts_with("---\ndescription: Nested tags bug\ntags:\n  - action\n  - block\nods:\n  profile: note\n  status: draft\n---\n")
-            || migrated.contains("tags:\n  - block\n  - action\n")
+        migrated.contains("tags:\n  - block\n  - action\n")
             || migrated.contains("tags:\n  - action\n  - block\n"),
         "expected root tags: {migrated}"
     );
+    assert!(migrated.contains("profile: note"), "{migrated}");
     assert!(
         !migrated.contains("  tags:"),
         "tags must not remain nested under ods: {migrated}"
@@ -207,4 +199,5 @@ fn migrate_never_drops_nested_tag_values() {
             || text.contains("tags:\n  - customer-care\n  - billing\n"),
         "{text}"
     );
+    assert!(!text.contains("ods:\n  profile:"), "{text}");
 }

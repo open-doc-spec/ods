@@ -281,14 +281,13 @@ fn schema_registry_lists_all_three_dialects() {
     assert!(names.contains(&"skills"));
     let ods = reg.get("ods").unwrap();
     assert!(
-        ods.keys_with_placement(ods_core::KeyPlacement::NestedEngineMap)
-            .len()
-            >= 8
-    );
-    assert!(
         ods.keys_with_placement(ods_core::KeyPlacement::TopLevel)
             .len()
-            >= 4
+            >= 12
+    );
+    assert!(
+        ods.keys_with_placement(ods_core::KeyPlacement::NestedEngineMap)
+            .is_empty()
     );
 }
 

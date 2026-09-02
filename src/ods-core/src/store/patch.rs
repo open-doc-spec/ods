@@ -1,5 +1,5 @@
 use crate::model::{Document, FrontmatterState, Workspace};
-use crate::parse::{document_id, parse_document_text};
+use crate::parse::document_id;
 use std::collections::{BTreeMap, HashMap};
 use std::fs;
 use std::io;
@@ -91,8 +91,7 @@ impl WorkspaceStore {
                 Ok(())
             }
             StorePatch::Upsert(path) => {
-                let text = fs::read_to_string(&path)?;
-                let doc = parse_document_text(&self.root, path.clone(), &text, false);
+                let doc = crate::pipeline::parse_path(&self.root, path.clone(), false)?;
                 let meta = meta_from_document_standalone(&self.root, &doc);
                 if let Some(meta) = meta {
                     self.upsert_meta(meta);

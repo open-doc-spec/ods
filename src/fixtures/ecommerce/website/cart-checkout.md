@@ -9,12 +9,10 @@ related:
   - ../support/refund-guide.md
 resources:
   - path: ../resources/user-flow-checkout.pdf
-context:
-  max-depth: 2
-  load:
-    - subscription-service.md
-  ignore:
-    - ../marketing/
+load:
+  - subscription-service.md
+ignore:
+  - ../marketing
 ---
 
 # Website Cart and Checkout Flow

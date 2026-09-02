@@ -5,7 +5,8 @@ fn run_share_command(args: &[String]) -> Result<ExitCode, CliError> {
     }
     let (root, scope, out, include_org, include_private) = parse_share_args(args)?;
     require_ods_workspace(&root)?;
-    let workspace = load_workspace(&root).map_err(|e| fail_load(&root, e))?;
+    let workspace = ods_core::load_workspace_with_options(&root, ods_core::load_options_graph())
+        .map_err(|e| fail_load(&root, e))?;
     let report = ods_core::publish_workspace(
         &workspace,
         &scope,

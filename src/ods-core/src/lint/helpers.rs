@@ -34,6 +34,11 @@ fn lint_resources(document: &Document, frontmatter: &crate::model::Frontmatter) 
         .resources
         .iter()
         .filter_map(|resource| {
+            // `url`-only entries (and malformed empty ones, reported by ASSET-005)
+            // have no local file to resolve.
+            if resource.url.is_some() || resource.path.as_os_str().is_empty() {
+                return None;
+            }
             let path = normalize_join(&document.directory, &resource.path);
             (!path.exists()).then(|| Diagnostic {
                 path: document.path.clone(),

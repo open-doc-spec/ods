@@ -116,19 +116,13 @@ impl SpecSchema {
 
     /// Document frontmatter keys stripped by `ods disable` (never foreign SSG keys).
     ///
-    /// Includes the `ods:` map root, all nested engine keys, and universal ODS domain
-    /// keys (`description`, `owner`, `tags`) that disable treats as ODS metadata.
+    /// Includes all ODS domain keys at the flat top level (2.0+).
     pub fn document_disable_strip_keys(&self) -> Vec<String> {
-        /// Universal top-level keys that belong to ODS domain (not SSG-reserved).
-        const UNIVERSAL_ODS_DOMAIN: &[&str] = &["description", "owner", "tags"];
+        const SKIP: &[&str] = &["$schema"];
         let mut out = vec!["ods".to_string()];
         for def in self.keys.values() {
-            match def.placement {
-                KeyPlacement::NestedEngineMap => out.push(def.name.clone()),
-                KeyPlacement::TopLevel if UNIVERSAL_ODS_DOMAIN.contains(&def.name.as_str()) => {
-                    out.push(def.name.clone());
-                }
-                _ => {}
+            if def.placement == KeyPlacement::TopLevel && !SKIP.contains(&def.name.as_str()) {
+                out.push(def.name.clone());
             }
         }
         out.sort();
@@ -157,12 +151,10 @@ impl SpecSchema {
         out
     }
 
-    /// Nested engine key names in migrate canonical emit order (stable product order).
+    /// Flat engine key names in canonical emit order (ODS 2.0+).
     pub fn canonical_engine_key_order(&self) -> Vec<&str> {
-        // Prefer fixed product sequence; only include keys that exist in this schema.
         const ORDER: &[&str] = &[
             "profile",
-            "custom_profile",
             "status",
             "id",
             "share",
@@ -170,16 +162,12 @@ impl SpecSchema {
             "related",
             "resources",
             "code",
-            "context",
+            "load",
         ];
         ORDER
             .iter()
             .copied()
-            .filter(|name| {
-                self.keys
-                    .get(*name)
-                    .is_some_and(|d| d.placement == KeyPlacement::NestedEngineMap)
-            })
+            .filter(|name| self.keys.contains_key(*name))
             .collect()
     }
 
@@ -225,10 +213,17 @@ impl SpecSchemaRegistry {
     }
 
     pub fn register_ods_schema(&mut self) {
-        let mut schema = SpecSchema::new(SpecKind::Ods, "0.1");
+        let mut schema = SpecSchema::new(SpecKind::Ods, "2.0");
 
-        // Universal top-level keys
+        // Universal + ODS 2.0 engine keys (all flat top-level — no ods: wrapper).
         for def in [
+            KeyDefinition::new(
+                "$schema",
+                KeyPlacement::TopLevel,
+                KeyType::String,
+                false,
+                "Optional JSON Schema URI for editor validation",
+            ),
             KeyDefinition::new(
                 "description",
                 KeyPlacement::TopLevel,
@@ -241,7 +236,7 @@ impl SpecSchemaRegistry {
                 KeyPlacement::TopLevel,
                 KeyType::List,
                 false,
-                "Free-form taxonomy tags (never under ods:)",
+                "Free-form taxonomy tags",
             ),
             KeyDefinition::new(
                 "owner",
@@ -249,6 +244,13 @@ impl SpecSchemaRegistry {
                 KeyType::StringOrList,
                 false,
                 "Responsible person or team",
+            ),
+            KeyDefinition::new(
+                "author",
+                KeyPlacement::TopLevel,
+                KeyType::String,
+                false,
+                "Individual author or agent",
             ),
             KeyDefinition::new(
                 "created",
@@ -266,29 +268,30 @@ impl SpecSchemaRegistry {
                 "Optional updated timestamp",
             )
             .with_aliases(&["last_updated", "updated_at"]),
-        ] {
-            schema.add_key(def);
-        }
-
-        // Engine keys under ods:
-        for def in [
+            KeyDefinition::new(
+                "title",
+                KeyPlacement::TopLevel,
+                KeyType::String,
+                false,
+                "Display title (OKF signal or TITLE-001 sync with H1)",
+            ),
+            KeyDefinition::new(
+                "name",
+                KeyPlacement::TopLevel,
+                KeyType::String,
+                false,
+                "Alias for title",
+            ),
             KeyDefinition::new(
                 "profile",
-                KeyPlacement::NestedEngineMap,
+                KeyPlacement::TopLevel,
                 KeyType::String,
                 false,
                 "Document profile type",
             ),
             KeyDefinition::new(
-                "custom_profile",
-                KeyPlacement::NestedEngineMap,
-                KeyType::Map,
-                false,
-                "Custom profile definition metadata",
-            ),
-            KeyDefinition::new(
                 "status",
-                KeyPlacement::NestedEngineMap,
+                KeyPlacement::TopLevel,
                 KeyType::Enum(vec![
                     "draft".into(),
                     "stable".into(),
@@ -300,65 +303,106 @@ impl SpecSchemaRegistry {
             ),
             KeyDefinition::new(
                 "id",
-                KeyPlacement::NestedEngineMap,
+                KeyPlacement::TopLevel,
                 KeyType::String,
                 false,
                 "Explicit document identifier",
             ),
             KeyDefinition::new(
                 "share",
-                KeyPlacement::NestedEngineMap,
+                KeyPlacement::TopLevel,
                 KeyType::Enum(vec!["public".into(), "org".into(), "private".into()]),
                 false,
                 "Document visibility level",
             ),
             KeyDefinition::new(
                 "depends",
-                KeyPlacement::NestedEngineMap,
+                KeyPlacement::TopLevel,
                 KeyType::List,
                 false,
-                "Required dependency IDs",
+                "Required Markdown dependency paths",
             ),
             KeyDefinition::new(
                 "related",
-                KeyPlacement::NestedEngineMap,
+                KeyPlacement::TopLevel,
                 KeyType::List,
                 false,
-                "Related document IDs",
+                "Soft lateral links (string paths or 2.1 predicates)",
             ),
             KeyDefinition::new(
                 "code",
-                KeyPlacement::NestedEngineMap,
+                KeyPlacement::TopLevel,
                 KeyType::List,
                 false,
-                "Code references",
+                "Source file path strings (no line numbers)",
             ),
             KeyDefinition::new(
                 "resources",
-                KeyPlacement::NestedEngineMap,
+                KeyPlacement::TopLevel,
                 KeyType::List,
                 false,
-                "Resource file references",
+                "Resource file references or URLs",
             ),
             KeyDefinition::new(
-                "context",
-                KeyPlacement::NestedEngineMap,
-                KeyType::Map,
+                "load",
+                KeyPlacement::TopLevel,
+                KeyType::List,
                 false,
-                "AI reading scope configuration",
+                "Non-Markdown fixtures injected into AI context",
+            ),
+            // ODS 2.1 Pareto ontology (gated by workspace spec >= 2.1)
+            KeyDefinition::new(
+                "entity",
+                KeyPlacement::TopLevel,
+                KeyType::String,
+                false,
+                "Pareto ontology entity name (ENT-001/002)",
+            ),
+            KeyDefinition::new(
+                "domain",
+                KeyPlacement::TopLevel,
+                KeyType::String,
+                false,
+                "Pareto ontology business domain",
+            ),
+            KeyDefinition::new(
+                "schema",
+                KeyPlacement::TopLevel,
+                KeyType::String,
+                false,
+                "Path to JSON Schema on disk (ONT-001)",
             ),
         ] {
             schema.add_key(def);
         }
 
-        // Workspace config only (ods.toml; RootIndexOnly kept as enum alias for API stability)
+        // Workspace config only (ods.toml)
         for def in [
+            KeyDefinition::new(
+                "spec",
+                KeyPlacement::WorkspaceConfigOnly,
+                KeyType::Enum(vec![
+                    "2.0".into(),
+                    "2.0.0".into(),
+                    "2.1".into(),
+                    "2.1.0".into(),
+                ]),
+                true,
+                "ODS spec version marker",
+            ),
             KeyDefinition::new(
                 "ods",
                 KeyPlacement::WorkspaceConfigOnly,
                 KeyType::String,
                 false,
-                "ODS spec version marker (ods.toml `spec` / legacy root pin)",
+                "Legacy alias for spec (ods.toml)",
+            ),
+            KeyDefinition::new(
+                "dialect",
+                KeyPlacement::WorkspaceConfigOnly,
+                KeyType::Enum(vec!["standard".into(), "strict".into()]),
+                false,
+                "Workspace lint enforcement mode",
             ),
             KeyDefinition::new(
                 "custom-profiles",
@@ -389,11 +433,46 @@ impl SpecSchemaRegistry {
                 "Ignore path prefixes",
             ),
             KeyDefinition::new(
+                "context",
+                KeyPlacement::WorkspaceConfigOnly,
+                KeyType::Map,
+                false,
+                "Context traversal defaults ([context] table)",
+            ),
+            KeyDefinition::new(
+                "ontology",
+                KeyPlacement::WorkspaceConfigOnly,
+                KeyType::Map,
+                false,
+                "Pareto ontology defaults ([ontology] table, 2.1+)",
+            ),
+            KeyDefinition::new(
+                "aliases",
+                KeyPlacement::WorkspaceConfigOnly,
+                KeyType::Map,
+                false,
+                "Section and path aliases ([aliases] table)",
+            ),
+            KeyDefinition::new(
+                "okf",
+                KeyPlacement::WorkspaceConfigOnly,
+                KeyType::Map,
+                false,
+                "OKF bundle settings ([okf] table)",
+            ),
+            KeyDefinition::new(
                 "specs",
                 KeyPlacement::WorkspaceConfigOnly,
                 KeyType::Map,
                 false,
                 "Multi-spec activation and lint config",
+            ),
+            KeyDefinition::new(
+                "service",
+                KeyPlacement::WorkspaceConfigOnly,
+                KeyType::Map,
+                false,
+                "Engine extension: ods serve memory budget",
             ),
         ] {
             schema.add_key(def);
@@ -410,14 +489,14 @@ impl SpecSchemaRegistry {
                 "okf_version",
                 KeyPlacement::TopLevel,
                 KeyType::String,
-                true,
-                "Google OKF bundle version",
+                false,
+                "OKF bundle version",
             ),
             KeyDefinition::new(
                 "type",
                 KeyPlacement::TopLevel,
                 KeyType::String,
-                true,
+                false,
                 "Concept kind (routes/filters)",
             ),
             KeyDefinition::new(
@@ -426,6 +505,13 @@ impl SpecSchemaRegistry {
                 KeyType::String,
                 false,
                 "Display title",
+            ),
+            KeyDefinition::new(
+                "name",
+                KeyPlacement::TopLevel,
+                KeyType::String,
+                false,
+                "Alias for title",
             ),
             KeyDefinition::new(
                 "description",
@@ -449,18 +535,18 @@ impl SpecSchemaRegistry {
                 "Canonical URI of underlying asset",
             ),
             KeyDefinition::new(
-                "concept_id",
-                KeyPlacement::TopLevel,
-                KeyType::String,
-                false,
-                "OKF concept identifier",
-            ),
-            KeyDefinition::new(
                 "sources",
                 KeyPlacement::TopLevel,
                 KeyType::List,
                 false,
                 "Provenance sources",
+            ),
+            KeyDefinition::new(
+                "usage_window",
+                KeyPlacement::TopLevel,
+                KeyType::Map,
+                false,
+                "Temporal applicability { from, to }",
             ),
             KeyDefinition::new(
                 "generated",
@@ -489,31 +575,6 @@ impl SpecSchemaRegistry {
                 KeyType::Timestamp,
                 false,
                 "Absolute freshness deadline",
-            ),
-            KeyDefinition::new(
-                "trust_tier",
-                KeyPlacement::TopLevel,
-                KeyType::Enum(vec![
-                    "verified".into(),
-                    "provisional".into(),
-                    "untrusted".into(),
-                ]),
-                false,
-                "Derived trust level",
-            ),
-            KeyDefinition::new(
-                "attested",
-                KeyPlacement::TopLevel,
-                KeyType::Map,
-                false,
-                "Attested computation block",
-            ),
-            KeyDefinition::new(
-                "date_range",
-                KeyPlacement::TopLevel,
-                KeyType::Map,
-                false,
-                "Temporal applicability range",
             ),
             KeyDefinition::new(
                 "runtime",
@@ -687,13 +748,8 @@ pub fn validate_ods_frontmatter(frontmatter: &Frontmatter) -> Vec<SchemaIssue> {
         });
     }
 
-    // Prefer H1 title; frontmatter title: is preserved but discouraged for ODS purity.
-    if frontmatter.title.is_some() {
-        issues.push(SchemaIssue {
-            severity: Severity::Warning,
-            message: crate::error::lint_title_discouraged(),
-        });
-    }
+    // `title` is a first-class ODS 2.0 key; TITLE-001/002 in spec20_rules check it
+    // against the H1 rather than discouraging its use.
 
     for key_name in frontmatter.custom_keys.keys() {
         if let Some(similar) = schema.find_similar_key(key_name) {
@@ -754,71 +810,30 @@ fn key_type_to_json_schema(key_type: &KeyType, description: &str) -> Value {
     obj
 }
 
-/// Emit draft-07 JSON Schema for the ODS dialect from the registry.
+/// Emit draft-07 JSON Schema for the ODS 2.0 dialect from the registry.
 pub fn generate_ods_json_schema() -> String {
     let registry = SpecSchemaRegistry::with_defaults();
     let schema = registry
         .get("ods")
         .expect("ods schema registered in with_defaults");
 
-    let mut top_props = serde_json::Map::new();
-    let mut engine_props = serde_json::Map::new();
-
+    let mut props = serde_json::Map::new();
     for def in schema.keys.values() {
-        match def.placement {
-            KeyPlacement::TopLevel => {
-                top_props.insert(
-                    def.name.clone(),
-                    key_type_to_json_schema(&def.key_type, &def.description),
-                );
-            }
-            KeyPlacement::NestedEngineMap => {
-                engine_props.insert(
-                    def.name.clone(),
-                    key_type_to_json_schema(&def.key_type, &def.description),
-                );
-            }
-            KeyPlacement::RootIndexOnly | KeyPlacement::WorkspaceConfigOnly => {
-                if def.name == "ods" || def.name == "spec" {
-                    continue; // workspace config, not document frontmatter
-                }
-                // Documented on ods.toml — omitted from document JSON Schema properties.
-            }
+        if def.placement == KeyPlacement::TopLevel {
+            props.insert(
+                def.name.clone(),
+                key_type_to_json_schema(&def.key_type, &def.description),
+            );
         }
     }
 
     let root = json!({
         "$schema": "http://json-schema.org/draft-07/schema#",
-        "$id": "https://opendocspec.org/schemas/v0.1/ods.schema.json",
-        "title": "Open Document Spec (ODS) Frontmatter Schema",
-        "description": "Frontmatter metadata validation schema for Open Document Spec Markdown files. Universal keys (tags, description, owner) are top-level; engine keys nest under ods:. Generated from SpecSchemaRegistry.",
+        "$id": "https://opendocspec.org/schemas/v2.0/ods.schema.json",
+        "title": "Open Document Spec (ODS) 2.0 Frontmatter Schema",
+        "description": "Flat top-level frontmatter keys only; no ods: wrapper. Generated from SpecSchemaRegistry.",
         "type": "object",
-        "properties": {
-            "description": top_props.get("description").cloned().unwrap_or(json!({"type":"string"})),
-            "tags": top_props.get("tags").cloned().unwrap_or(json!({"type":"array"})),
-            "owner": top_props.get("owner").cloned().unwrap_or(json!({"type":"string"})),
-            "created": top_props.get("created").cloned().unwrap_or(json!({"type":"string"})),
-            "updated": top_props.get("updated").cloned().unwrap_or(json!({"type":"string"})),
-            "ods": {
-                "oneOf": [
-                    {
-                        "type": "string",
-                        "description": "Root index only: ODS spec version marker (e.g. '0.1')."
-                    },
-                    {
-                        "type": "object",
-                        "description": "ODS engine metadata map. Do not put tags here — tags are top-level only.",
-                        "properties": engine_props,
-                        "additionalProperties": false
-                    }
-                ]
-            },
-            "custom-profiles": top_props.get("custom-profiles").cloned().unwrap_or(json!({"type":"array"})),
-            "profiles": top_props.get("profiles").cloned().unwrap_or(json!({"type":"array"})),
-            "packs": top_props.get("packs").cloned().unwrap_or(json!({"type":"array"})),
-            "ignore": top_props.get("ignore").cloned().unwrap_or(json!({"type":"array"})),
-            "specs": top_props.get("specs").cloned().unwrap_or(json!({"type":"object"}))
-        },
+        "properties": props,
         "additionalProperties": true
     });
 
@@ -833,44 +848,7 @@ pub fn get_document_key_values(doc: &crate::model::Document, key: &str) -> Vec<S
     let FrontmatterState::Parsed(fm) = &doc.frontmatter else {
         return Vec::new();
     };
-    let norm_key = key.trim().to_lowercase();
-    match norm_key.as_str() {
-        "profile" => fm.profile.clone().into_iter().collect(),
-        "status" => fm.status.clone().into_iter().collect(),
-        "owner" => fm.owner.clone().into_iter().collect(),
-        "share" => fm.share.clone().into_iter().collect(),
-        "description" => fm.description.clone().into_iter().collect(),
-        "id" => fm.id.clone().into_iter().collect(),
-        "title" => fm
-            .title
-            .clone()
-            .or_else(|| fm.name.clone())
-            .into_iter()
-            .collect(),
-        "name" => fm.name.clone().into_iter().collect(),
-        "created" | "created_at" | "date" => fm.created.clone().into_iter().collect(),
-        "updated" | "updated_at" | "last_updated" => fm.updated.clone().into_iter().collect(),
-        "tags" => fm.tags.clone(),
-        "depends" => fm.depends.clone(),
-        "related" => fm.related.clone(),
-        "packs" => fm.packs.clone(),
-        "profiles" | "custom-profiles" => fm.profiles.clone(),
-        "code" => fm
-            .code
-            .iter()
-            .map(|c| c.path.to_string_lossy().to_string())
-            .collect(),
-        "resources" => fm
-            .resources
-            .iter()
-            .map(|r| r.path.to_string_lossy().to_string())
-            .collect(),
-        other => fm
-            .custom_keys
-            .get(other)
-            .map(|val| val.as_query_strings())
-            .unwrap_or_default(),
-    }
+    fm.key_query_values(key)
 }
 
 /// Evaluate if a document matches a single key clause (`key` or `key=val1,val2`).
@@ -1046,21 +1024,24 @@ mod tests {
     fn generate_json_schema_contains_engine_and_universal_keys() {
         let raw = generate_ods_json_schema();
         let v: Value = serde_json::from_str(&raw).expect("valid json");
-        let props = v.get("properties").expect("properties");
-        assert!(props.get("tags").is_some());
-        assert!(props.get("description").is_some());
-        assert!(props.get("ods").is_some());
-        assert!(props.get("custom-profiles").is_some());
+        let props = v
+            .get("properties")
+            .and_then(|p| p.as_object())
+            .expect("properties");
+        assert!(props.contains_key("tags"));
+        assert!(props.contains_key("description"));
+        assert!(props.contains_key("load"));
+        assert!(props.contains_key("profile"));
+        assert!(!props.contains_key("ods"));
         assert!(raw.contains("SpecSchemaRegistry") || raw.contains("Open Document Spec"));
     }
 
     #[test]
-    fn ods_engine_keys_match_canonical_set() {
+    fn ods_engine_keys_are_flat_top_level() {
         let registry = SpecSchemaRegistry::with_defaults();
         let ods = registry.get("ods").unwrap();
         for key in [
             "profile",
-            "custom_profile",
             "status",
             "id",
             "share",
@@ -1068,17 +1049,16 @@ mod tests {
             "related",
             "code",
             "resources",
-            "context",
+            "load",
         ] {
             let def = ods.keys.get(key).unwrap_or_else(|| panic!("missing {key}"));
-            assert_eq!(def.placement, KeyPlacement::NestedEngineMap, "{key}");
+            assert_eq!(def.placement, KeyPlacement::TopLevel, "{key}");
         }
         let order = ods.canonical_engine_key_order();
         assert_eq!(
             order,
             vec![
                 "profile",
-                "custom_profile",
                 "status",
                 "id",
                 "share",
@@ -1086,18 +1066,8 @@ mod tests {
                 "related",
                 "resources",
                 "code",
-                "context",
+                "load",
             ]
-        );
-        let nested: std::collections::BTreeSet<_> = ods
-            .keys_with_placement(KeyPlacement::NestedEngineMap)
-            .into_iter()
-            .map(|k| k.name.as_str())
-            .collect();
-        let ordered: std::collections::BTreeSet<_> = order.into_iter().collect();
-        assert_eq!(
-            nested, ordered,
-            "migrator order must cover all nested engine keys"
         );
     }
 

@@ -58,60 +58,73 @@ fn run_schema_command(args: &[String]) -> Result<ExitCode, CliError> {
 
     if is_keys_sub {
         let registry = ods_core::SpecSchemaRegistry::with_defaults();
-        let schema = registry.get(&dialect).ok_or_else(|| {
-            usage_msg(ods_core::invalid_choice("--spec", &dialect, "ods|okf|skills"))
-        })?;
+        let schemas: Vec<&ods_core::SpecSchema> = if dialect == "ods" {
+            let mut out = vec![registry.get("ods").expect("ods")];
+            if let Some(okf) = registry.get("okf") {
+                out.push(okf);
+            }
+            out
+        } else {
+            vec![registry.get(&dialect).ok_or_else(|| {
+                usage_msg(ods_core::invalid_choice("--spec", &dialect, "ods|okf|skills"))
+            })?]
+        };
 
         match format {
             OutputFormat::Text => {
-                println!("Schema keys for {dialect} (v{}):", schema.version);
-                let mut keys: Vec<_> = schema.keys.values().collect();
-                keys.sort_by(|a, b| a.name.cmp(&b.name));
-                for k in keys {
-                    let req = if k.required { "[required]" } else { "[optional]" };
-                    let placement_str = match k.placement {
-                        ods_core::KeyPlacement::TopLevel => "top-level",
-                        ods_core::KeyPlacement::NestedEngineMap => "nested (ods:)",
-                        ods_core::KeyPlacement::RootIndexOnly
-                        | ods_core::KeyPlacement::WorkspaceConfigOnly => "ods.toml only",
+                println!("Schema keys (ODS 2.0 flat + OKF superset):");
+                for schema in &schemas {
+                    let dialect_label = match &schema.kind {
+                        ods_core::SpecKind::Ods => "ods",
+                        ods_core::SpecKind::Okf => "okf",
+                        ods_core::SpecKind::Skills => "skills",
+                        ods_core::SpecKind::Custom(n) => n.as_str(),
                     };
-                    let alias_str = if k.aliases.is_empty() {
-                        "".to_string()
-                    } else {
-                        format!(" (aliases: {})", k.aliases.join(", "))
-                    };
-                    println!("  {:<20} {:<18} {:<10} {}{}", k.name, placement_str, req, k.description, alias_str);
-                }
-            }
-            OutputFormat::Json | OutputFormat::Sarif => {
-                let keys: Vec<_> = schema
-                    .keys
-                    .values()
-                    .map(|k| {
+                    println!("\n[{} v{}]", dialect_label, schema.version);
+                    let mut keys: Vec<_> = schema.keys.values().collect();
+                    keys.sort_by(|a, b| a.name.cmp(&b.name));
+                    for k in keys {
+                        if matches!(k.placement, ods_core::KeyPlacement::WorkspaceConfigOnly | ods_core::KeyPlacement::RootIndexOnly) {
+                            continue;
+                        }
+                        let req = if k.required { "[required]" } else { "[optional]" };
                         let placement_str = match k.placement {
                             ods_core::KeyPlacement::TopLevel => "top-level",
-                            ods_core::KeyPlacement::NestedEngineMap => "nested (ods:)",
+                            ods_core::KeyPlacement::NestedEngineMap => "nested (legacy)",
                             ods_core::KeyPlacement::RootIndexOnly
                             | ods_core::KeyPlacement::WorkspaceConfigOnly => "ods.toml only",
                         };
-                        serde_json::json!({
+                        let example = format!("ods find --key {}=…", k.name);
+                        println!(
+                            "  {:<20} {:<12} {:<10} {}  (e.g. {})",
+                            k.name, placement_str, req, k.description, example
+                        );
+                    }
+                }
+            }
+            OutputFormat::Json | OutputFormat::Sarif => {
+                let mut all_keys = Vec::new();
+                for schema in &schemas {
+                    for k in schema.keys.values() {
+                        if matches!(k.placement, ods_core::KeyPlacement::WorkspaceConfigOnly | ods_core::KeyPlacement::RootIndexOnly) {
+                            continue;
+                        }
+                        all_keys.push(serde_json::json!({
                             "name": k.name,
-                            "placement": placement_str,
-                            "key_type": format!("{:?}", k.key_type),
+                            "dialect": format!("{:?}", schema.kind),
+                            "placement": format!("{:?}", k.placement),
                             "required": k.required,
                             "description": k.description,
                             "aliases": k.aliases,
-                        })
-                    })
-                    .collect();
+                            "queryable": true,
+                            "example": format!("ods find --key {}=<value>", k.name),
+                        }));
+                    }
+                }
                 println!(
                     "{}",
-                    serde_json::to_string_pretty(&serde_json::json!({
-                        "dialect": dialect,
-                        "version": schema.version,
-                        "keys": keys,
-                    }))
-                    .unwrap_or_default()
+                    serde_json::to_string_pretty(&serde_json::json!({ "keys": all_keys }))
+                        .unwrap_or_default()
                 );
             }
         }

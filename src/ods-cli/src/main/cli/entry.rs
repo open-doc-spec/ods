@@ -23,11 +23,21 @@ use update::{
 };
 
 fn main() -> ExitCode {
-    match run(env::args().collect()) {
+    let code = match run(env::args().collect()) {
         Ok(code) => code,
         Err(err) => {
             eprintln!("{}", err.message());
             ExitCode::from(err.code())
+        }
+    };
+    maybe_print_memory_report();
+    code
+}
+
+fn maybe_print_memory_report() {
+    if std::env::var("ODS_MEM_REPORT").as_deref() == Ok("1") {
+        if let Some(kb) = ods_core::current_rss_kb() {
+            eprintln!("ods: rss_kb={kb}");
         }
     }
 }

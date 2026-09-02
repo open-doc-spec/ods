@@ -254,18 +254,22 @@ fn run_watch_tick(
     }
 
     // Soft RSS budget from ods.toml [service] max_rss_mb (default 10).
+    // Enforcement is best-effort: strip in-memory bodies and warn; does not exit the process.
     {
-        let ws = workspace.borrow();
-        let budget_mb = ws.config.service.max_rss_mb.max(1);
-        if let Some(rss_kb) = current_rss_kb() {
-            let limit_kb = budget_mb.saturating_mul(1024);
-            if rss_kb > limit_kb {
+        let budget_mb = {
+            let ws = workspace.borrow();
+            ws.config.service.max_rss_mb.max(1)
+        };
+        if ods_core::rss_over_budget(budget_mb) {
+            ods_core::strip_workspace_bodies(&mut workspace.borrow_mut());
+            if let Some(rss_kb) = ods_core::current_rss_kb() {
+                let limit_kb = budget_mb.saturating_mul(1024);
                 eprintln!(
-                    "ods serve: warning rss_kb={rss_kb} exceeds service.max_rss_mb={budget_mb} (limit {limit_kb} KB)"
+                    "ods serve: warning rss_kb={rss_kb} exceeds service.max_rss_mb={budget_mb} (limit {limit_kb} KB); stripped document bodies"
                 );
             }
         }
-        // Keep a compact meta store in sync for progressive discovery callers.
+        let ws = workspace.borrow();
         let _store = ods_core::WorkspaceStore::from_workspace(&ws);
         let _ = _store.within_rss_budget(budget_mb);
     }
@@ -310,7 +314,7 @@ fn print_memory_report(
     retained_snapshot_files: usize,
     max_rss_mb: u64,
 ) {
-    let rss = current_rss_kb()
+    let rss = ods_core::current_rss_kb()
         .map(|kb| kb.to_string())
         .unwrap_or_else(|| "unknown".to_string());
     eprintln!(

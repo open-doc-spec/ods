@@ -52,7 +52,7 @@ fn production_cli_matrix_core_commands() {
     .unwrap();
     fs::write(
         dir.join("ods.toml"),
-        r#"spec = "0.1"
+        r#"spec = "2.0"
 custom_profiles = ["ods-profiles"]
 "#,
     )

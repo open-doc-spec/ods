@@ -212,8 +212,8 @@ fn schema_keys_and_schema_regression() {
         .unwrap();
     assert!(out.status.success(), "{:?}", out);
     let stdout = String::from_utf8_lossy(&out.stdout);
-    assert!(stdout.contains("\"dialect\""), "{stdout}");
     assert!(stdout.contains("\"keys\""), "{stdout}");
+    assert!(stdout.contains("\"queryable\""), "{stdout}");
 
     // Regression: bare schema still emits JSON Schema properties.
     let out = Command::new(ods_bin()).args(["schema"]).output().unwrap();
@@ -329,6 +329,54 @@ fn context_filter_unique_multi_and_id_regression() {
         .output()
         .unwrap();
     assert!(out.status.success(), "id path: {:?}", out);
+
+    // Multi-key filter (unique match).
+    write_doc(
+        &dir,
+        "okf.md",
+        "---\nprofile: note\nstatus: draft\ntype: Dataset\nresource: bq://proj/table\nload:\n  - fixture.json\n---\n\n# OKF\n",
+    );
+    fs::write(dir.join("fixture.json"), "{\"ok\":true}\n").unwrap();
+    let out = Command::new(ods_bin())
+        .args([
+            "context",
+            &root,
+            "--key",
+            "status=draft",
+            "--key",
+            "type=Dataset",
+            "--key-match",
+            "and",
+        ])
+        .output()
+        .unwrap();
+    assert!(out.status.success(), "multi-key context: {:?}", out);
+
+    let out = Command::new(ods_bin())
+        .args([
+            "find",
+            &root,
+            "--key",
+            "type=Dataset",
+            "--key",
+            "status=draft",
+            "--format",
+            "json",
+        ])
+        .output()
+        .unwrap();
+    assert!(out.status.success(), "{:?}", out);
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    assert!(
+        stdout.contains("okf") || stdout.contains("Dataset"),
+        "{stdout}"
+    );
+
+    let out = Command::new(ods_bin())
+        .args(["find", &root, "--key", "load", "--format", "json"])
+        .output()
+        .unwrap();
+    assert!(out.status.success(), "{:?}", out);
 
     // No id and no filter → usage.
     let out = Command::new(ods_bin())

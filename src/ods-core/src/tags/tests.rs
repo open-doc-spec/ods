@@ -161,11 +161,8 @@ mod tests {
         let text = "---\nods:\n  profile: note\n  status: draft\n  tags:\n    - billing\n    - block\n---\n\n# Doc\n";
         let out = crate::mv::migrate_frontmatter_to_canonical(text).expect("should hoist");
         assert!(out.contains("tags:\n  - billing\n  - block\n"), "{out}");
-        assert!(out.contains("ods:\n  profile: note\n  status: draft\n"), "{out}");
-        assert!(
-            !out.contains("ods:\n  profile: note\n  status: draft\n  tags:"),
-            "tags must not remain under ods: {out}"
-        );
+        assert!(out.contains("profile: note\nstatus: draft\n"), "{out}");
+        assert!(!out.contains("ods:"), "ods: wrapper must be removed in 2.0 migrate: {out}");
         // Idempotent after hoist
         assert!(crate::mv::migrate_frontmatter_to_canonical(&out).is_none());
     }

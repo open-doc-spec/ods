@@ -5,13 +5,24 @@ mod test_profile_commands {
 
     #[test]
     fn test_profile_list_and_show() {
-        let res = run_profile_list_command(&["ods".into(), "profile".into(), "list".into()]);
+        let td = tempdir().unwrap();
+        let root = td.path();
+        ods_core::init_workspace(root, ods_core::InitOptions::default()).unwrap();
+
+        let root_s = root.to_str().unwrap().to_string();
+        let res = run_profile_list_command(&[
+            "ods".into(),
+            "profile".into(),
+            "list".into(),
+            root_s.clone(),
+        ]);
         assert!(res.is_ok());
 
         let res = run_profile_list_command(&[
             "ods".into(),
             "profile".into(),
             "list".into(),
+            root_s.clone(),
             "--format".into(),
             "json".into(),
         ]);
@@ -22,6 +33,7 @@ mod test_profile_commands {
             "profile".into(),
             "show".into(),
             "note".into(),
+            root_s.clone(),
         ]);
         assert!(res.is_ok());
 
@@ -30,6 +42,7 @@ mod test_profile_commands {
             "profile".into(),
             "show".into(),
             "note".into(),
+            root_s.clone(),
             "--format".into(),
             "json".into(),
         ]);

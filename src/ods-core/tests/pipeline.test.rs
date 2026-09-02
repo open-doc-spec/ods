@@ -75,9 +75,9 @@ fn parse_paths_parallel_and_discover() {
 
     let docs = parse_paths_parallel(root, &paths, false).unwrap();
     assert_eq!(docs.len(), paths.len());
-    // index.md keeps body even when include_body false
+    // Graph mode: bodies are not retained (index child-list lint removed).
     let index_doc = docs.iter().find(|d| d.path.ends_with("index.md")).unwrap();
-    assert!(!index_doc.body.is_empty());
+    assert!(index_doc.body.is_empty());
 
     // ODS_JOBS & ODC_JOBS path (edition 2024: env mutation is unsafe)
     unsafe {

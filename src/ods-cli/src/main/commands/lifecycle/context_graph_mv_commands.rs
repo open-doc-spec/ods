@@ -11,8 +11,40 @@ fn run_context_command(args: &[String]) -> Result<ExitCode, CliError> {
     let positionals = positional_args(args, 2);
     let root_flag = parse_flag_val(args, "--root").map(PathBuf::from);
     let tag_flag = parse_flag_val(args, "--tag");
-    let key_flag = parse_flag_val(args, "--key");
     let status_flag = parse_flag_val(args, "--status");
+    let profile_flag = parse_flag_val(args, "--profile");
+    let owner_flag = parse_flag_val(args, "--owner");
+    let mut keys: Vec<String> = Vec::new();
+    let mut key_match_or = false;
+    let mut i = 2;
+    while i < args.len() {
+        match args[i].as_str() {
+            "--key" => {
+                let v = args.get(i + 1).ok_or_else(|| {
+                    usage_msg(ods_core::missing_flag_value("--key", "`ods context --key status=draft`"))
+                })?;
+                keys.push(v.clone());
+                i += 2;
+            }
+            "--key-match" => {
+                let v = args.get(i + 1).ok_or_else(|| {
+                    usage_msg(ods_core::missing_flag_value("--key-match", "`--key-match and|or`"))
+                })?;
+                key_match_or = matches!(v.as_str(), "or" | "any");
+                i += 2;
+            }
+            _ => i += 1,
+        }
+    }
+    if let Some(s) = status_flag {
+        keys.push(format!("status={s}"));
+    }
+    if let Some(p) = profile_flag {
+        keys.push(format!("profile={p}"));
+    }
+    if let Some(o) = owner_flag {
+        keys.push(format!("owner={o}"));
+    }
 
     let (root_dir, raw_query) = match (root_flag, positionals.as_slice()) {
         (Some(rf), []) => (rf, None),
@@ -43,29 +75,25 @@ fn run_context_command(args: &[String]) -> Result<ExitCode, CliError> {
 
     let root = resolve_root_path(root_dir);
 
+    if raw_query.is_none() && tag_flag.is_none() && keys.is_empty() {
+        return Err(usage_msg(ods_core::missing_context_id()));
+    }
+
+    let workspace = load_workspace_with_options(&root, load_options_graph())
+        .map_err(|err| fail_load(&root, err))?;
+
     // When a positional id is present, classic path wins (filters unused).
     let query = match raw_query {
         Some(q) => q,
         None => {
-            if tag_flag.is_none() && key_flag.is_none() && status_flag.is_none() {
-                return Err(usage_msg(ods_core::missing_context_id()));
-            }
-            let ws = load_workspace(&root).map_err(|err| fail_load(&root, err))?;
-            let mut ids: Vec<String> = ws.by_id.keys().cloned().collect();
+            let mut ids: Vec<String> = workspace.by_id.keys().cloned().collect();
             ids.sort();
             if let Some(t) = tag_flag {
-                let tag_ids = ods_core::docs_with_tag(&ws, &t);
+                let tag_ids = ods_core::docs_with_tag(&workspace, &t);
                 ids.retain(|id| tag_ids.contains(id));
             }
-            let mut keys = Vec::new();
-            if let Some(k) = key_flag {
-                keys.push(k.to_string());
-            }
-            if let Some(s) = status_flag {
-                keys.push(format!("status={s}"));
-            }
             if !keys.is_empty() {
-                let key_ids = ods_core::filter_documents_by_keys(&ws, &keys, false);
+                let key_ids = ods_core::filter_documents_by_keys(&workspace, &keys, key_match_or);
                 ids.retain(|id| key_ids.contains(id));
             }
             match ids.as_slice() {
@@ -112,8 +140,6 @@ fn run_context_command(args: &[String]) -> Result<ExitCode, CliError> {
         })
         .transpose()?;
 
-    let workspace = load_workspace_with_options(&root, load_options_graph())
-        .map_err(|err| fail_load(&root, err))?;
     let mut result = ods_core::resolve_context_with_options(
         &workspace,
         &query,

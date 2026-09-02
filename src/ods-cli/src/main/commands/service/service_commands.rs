@@ -143,7 +143,8 @@ fn run_export_command(args: &[String]) -> Result<ExitCode, CliError> {
 
     match format {
         OutputFormat::Json => {
-            let workspace = ods_core::load_workspace(&root).map_err(|e| fail_load(&root, e))?;
+            let workspace = ods_core::load_workspace_with_options(&root, ods_core::load_options_graph())
+                .map_err(|e| fail_load(&root, e))?;
             let json_str = ods_core::render_graph_json(&workspace, include_private, &spec);
             println!("{json_str}");
         }

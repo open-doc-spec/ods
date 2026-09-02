@@ -147,7 +147,7 @@ ods context <doc-id> --okf                  # pure OKF, or hybrid ODS+OKF merge
 | :--- | :--- |
 | `ods.depends` | Structural prerequisites — **walked** (up to `context.max-depth`) |
 | `ods.related` | Soft links — **not** walked unless `--include-related` |
-| `ods.context.load` | Extra files (md or resources) that **must** load |
+| `ods.context.load` | Extra files (md or resources) that **must** load — use top-level **`load:`** in ODS 2.0 |
 | `ods.context.ignore` | Skip noisy trees during expansion |
 | `ods.code` | Only if you pass `--include-code` |
 

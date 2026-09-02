@@ -74,7 +74,7 @@ Progress from initial setup to enterprise documentation architecture across 4 st
 
 | Feature | Command / Key | Role & Description |
 |---|---|---|
-| ⚡ **Deterministic Bounded Context Graph** | `ods context <doc-id>` | Bounded AI reading scope (<5ms) following `depends:` + `context.load` (not full-repo dump). |
+| ⚡ **Deterministic Bounded Context Graph** | `ods context <doc-id>` | Bounded AI reading scope (<5ms) following `depends:` + top-level `load` (not full-repo dump). |
 | 🔍 **Multi-criteria AI discovery** | `ods find` / `ods overview` / `ods schema keys` | Find by tag and frontmatter keys (`--key`, `--status`, …); cold-start snapshot; list registered schema keys. |
 | 📋 **Custom Profile Schema Engine** | `ods profile` / `custom_profiles (ods.toml):` | Single-source profile schema registration in `ods.toml`, enforcing required/optional/forbidden keys and `H2`/`H3` section hierarchies. |
 | 📊 **Workspace Document Telemetry** | `ods stats` | Reports document health score %, graph dependency density, profile distribution, and top taxonomy tags. |
@@ -231,7 +231,7 @@ ods:
 | `ods diff` | `ods diff [target]` | Compare document graph dependencies and frontmatter changes against git commits or branches. |
 | `ods clean` | `ods clean [path]` | Clean diagnostic reports (`.ods/ods-errors.md`), coverage files (`.ods/coverage.md`), and cache files. |
 | `ods status` / `coverage` | `ods coverage [path]` | Display workspace health score and profile coverage breakdown. |
-| `ods context` | `ods context <doc-id> [--max-tokens N] [--print] [--include-code] [--root <dir>]` | Bounded AI reading list (depends + context.load). Without id: unique `--tag`/`--key`/`--status` only. |
+| `ods context` | `ods context <doc-id> [--max-tokens N] [--print] [--include-code] [--root <dir>]` | Bounded AI reading list (depends + top-level `load`). Without id: unique `--tag`/`--key`/`--status` only. |
 | `ods find` | `ods find [path] [--tag t] [--key expr] [query]` | Find docs by tag, schema/custom keys, and/or id/path query (`--format text\|json`). |
 | `ods mv` | `ods mv <src> <dst>` | Move/rename Markdown file and auto-heal graph links and references. |
 | `ods adopt` | `ods adopt [path]` | Auto-draft frontmatter on unindexed legacy Markdown files. |

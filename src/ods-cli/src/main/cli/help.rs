@@ -164,7 +164,7 @@ Getting started:
 Discover:
   find [path] [query]         Find documents by tag, key, or name
   read <id>                   Read a section or summary (optional token budget)
-  context <id>                Bounded reading list (depends + context.load)
+  context <id>                Bounded reading list (depends + top-level load)
   tag list|show|rename        List tags, show docs, or rename a tag
   tag rename <old> <new>      Workspace-wide tag rename (dry-run; --write)
   tags [path]                 Tag counts (--all includes unused builtins)
@@ -473,7 +473,7 @@ Usage:
 
 Description:
   Builds a small reading list: the target plus `depends` and
-  `context.load`. Does not walk `related` unless --include-related.
+  top-level `load`. Does not walk `related` unless --include-related.
   Code edges stay off unless --include-code.
 
 Arguments:

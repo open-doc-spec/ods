@@ -11,7 +11,7 @@ fn tempdir() -> tempfile::TempDir {
 #[test]
 fn graph_keys_and_context_work_end_to_end() {
     let dir = tempdir();
-    fs::write(dir.path().join("ods.toml"), "spec = \"0.1\"\n").unwrap();
+    fs::write(dir.path().join("ods.toml"), "spec = \"2.0\"\n").unwrap();
     fs::create_dir_all(dir.path().join("specs")).unwrap();
     fs::write(
         dir.path().join("impl.md"),
@@ -25,7 +25,7 @@ fn graph_keys_and_context_work_end_to_end() {
     .unwrap();
     fs::write(
         dir.path().join("specs/feature.md"),
-        "---\nprofile: feature\nstatus: draft\ndepends:\n  - stable/impl\nrelated:\n  - related\ncontext:\n  load:\n    - stable/impl\n  ignore:\n    - archive/old\n---\n\n# Feature\n\n## Goal\n\n## Scope\n\n## Requirements\n\n## Acceptance Criteria\n\n## Risks\n",
+        "---\nprofile: feature\nstatus: draft\ndepends:\n  - stable/impl\nrelated:\n  - related\nload:\n  - ../impl.md\n---\n\n# Feature\n\n## Goal\n\n## Scope\n\n## Requirements\n\n## Acceptance Criteria\n\n## Risks\n",
     )
     .unwrap();
     fs::create_dir_all(dir.path().join("archive")).unwrap();
@@ -56,7 +56,7 @@ fn graph_keys_and_context_work_end_to_end() {
 #[test]
 fn code_refs_are_in_context_and_export() {
     let dir = tempdir();
-    fs::write(dir.path().join("ods.toml"), "spec = \"0.1\"\n").unwrap();
+    fs::write(dir.path().join("ods.toml"), "spec = \"2.0\"\n").unwrap();
     fs::create_dir_all(dir.path().join("src/routes")).unwrap();
     fs::write(
         dir.path().join("src/routes/checkout.tsx"),
@@ -91,7 +91,7 @@ fn code_files_are_not_indexed_as_document_children() {
     let root = temp.path();
     fs::write(
         root.join("ods.toml"),
-        "spec = \"0.1\"
+        "spec = \"2.0\"
 ",
     )
     .unwrap();
@@ -129,7 +129,7 @@ code:
 #[test]
 fn duplicate_ids_and_missing_refs_are_reported() {
     let dir = tempdir();
-    fs::write(dir.path().join("ods.toml"), "spec = \"0.1\"\n").unwrap();
+    fs::write(dir.path().join("ods.toml"), "spec = \"2.0\"\n").unwrap();
     fs::write(
         dir.path().join("a.md"),
         "---\nprofile: note\nid: same\nstatus: draft\n---\n\n# A\n",
@@ -158,7 +158,7 @@ fn duplicate_ids_and_missing_refs_are_reported() {
 #[test]
 fn markdown_document_refs_resolve_and_canonical_lint_warns_on_legacy_ids() {
     let dir = tempdir();
-    fs::write(dir.path().join("ods.toml"), "spec = \"0.1\"\n").unwrap();
+    fs::write(dir.path().join("ods.toml"), "spec = \"2.0\"\n").unwrap();
     fs::create_dir_all(dir.path().join("website")).unwrap();
     fs::write(
         dir.path().join("website/cart-checkout.md"),
@@ -167,7 +167,7 @@ fn markdown_document_refs_resolve_and_canonical_lint_warns_on_legacy_ids() {
     .unwrap();
     fs::write(
         dir.path().join("feature.md"),
-        "---\nprofile: note\nstatus: draft\ndepends:\n  - website/cart-checkout.md\nrelated:\n  - website/cart-checkout\ncontext:\n  load:\n    - website/cart-checkout.md\n---\n\n# Feature\n",
+        "---\nprofile: note\nstatus: draft\ndepends:\n  - website/cart-checkout.md\nrelated:\n  - website/cart-checkout\nload:\n  - website/cart-checkout.md\n---\n\n# Feature\n",
     )
     .unwrap();
 
@@ -194,7 +194,7 @@ fn markdown_document_refs_resolve_and_canonical_lint_warns_on_legacy_ids() {
 #[test]
 fn fmt_md_paths_rewrites_document_refs_only() {
     let dir = tempdir();
-    fs::write(dir.path().join("ods.toml"), "spec = \"0.1\"\n").unwrap();
+    fs::write(dir.path().join("ods.toml"), "spec = \"2.0\"\n").unwrap();
     fs::create_dir_all(dir.path().join("website")).unwrap();
     fs::create_dir_all(dir.path().join("resources")).unwrap();
     fs::create_dir_all(dir.path().join("src")).unwrap();
@@ -207,7 +207,7 @@ fn fmt_md_paths_rewrites_document_refs_only() {
     fs::write(dir.path().join("src/app.ts"), "export {}\n").unwrap();
     fs::write(
         dir.path().join("feature.md"),
-        "---\nprofile: note\nstatus: draft\nid: stable/feature\ndepends:\n  - website/cart-checkout\nrelated:\n  - website/cart-checkout.md\nresources:\n  - path: resources/users.csv\ncode:\n  - path: src/app.ts\n    role: implementation\ncontext:\n  load:\n    - website/cart-checkout\n    - resources/users.csv\n  ignore:\n    - archive/\n---\n\n# Feature\n",
+        "---\nprofile: note\nstatus: draft\nid: stable/feature\ndepends:\n  - website/cart-checkout\nrelated:\n  - website/cart-checkout.md\nresources:\n  - path: resources/users.csv\ncode:\n  - path: src/app.ts\n    role: implementation\nload:\n  - website/cart-checkout.md\n  - resources/users.csv\n---\n\n# Feature\n",
     )
     .unwrap();
 
@@ -218,6 +218,6 @@ fn fmt_md_paths_rewrites_document_refs_only() {
     assert!(body.contains("id: stable/feature"), "{body}");
     assert!(body.contains("path: resources/users.csv"), "{body}");
     assert!(body.contains("path: src/app.ts"), "{body}");
-    assert!(body.contains("    - resources/users.csv"), "{body}");
-    assert!(body.contains("    - archive/"), "{body}");
+    assert!(body.contains("- website/cart-checkout.md"), "{body}");
+    assert!(body.contains("- resources/users.csv"), "{body}");
 }

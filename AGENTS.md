@@ -32,7 +32,7 @@ CLI/engine user copy lives in **`src/ods-core/src/error/messages.rs`** (not ad-h
 
 - Cold-start: `ods overview` → `ods tag list` / `ods schema keys` → `ods find --key …` → `ods context <id>`.
 - Prefer `ods read <id>` (`--section <heading>`, `--summary`, `--max-tokens N`) or `ods context <id>` (`--max-tokens N`, `--print`). Read **only** returned sections or paths.
-- Context walks **depends + context.load** (not `related`). `--include-code` is opt-in.
+- Context walks **depends + top-level `load`** (not `related`). `--include-code` is opt-in.
 - If context errors: **stop** — use `ods find <query>` / `--key`; do not dump the repo or full graph export.
 - `ods export` defaults to `.ods/graph.md` (not routine AI prompts).
 - Do not load `skills/ods/references/*` and `specs/ods/*` duplicates in one turn.

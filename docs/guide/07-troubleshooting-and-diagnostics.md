@@ -141,7 +141,7 @@ Below is the complete catalog of errors and warnings reported by `ods lint`, alo
 ### 12. Tags nested under `ods:`
 * **Severity**: Warning
 * **Diagnostic Message**: `tags must be top-level frontmatter (not under ods:) …; run: ods fmt --migrate`
-* **Cause**: Tags were placed under the nested `ods:` map.
+* **Cause**: Tags were placed under a nested `ods:` map (legacy). Use flat top-level keys in ODS 2.0 or run `ods fmt --migrate`.
 * **Resolution**: Run `ods fmt --migrate` (hoists tags; never drops values).
 
 ---

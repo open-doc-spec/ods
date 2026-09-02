@@ -30,8 +30,13 @@ pub(crate) const DEFAULT_IGNORE_NAMES: &[&str] = &[
 
 /// Load options optimized for graph ops (lint, doctor, context): no body retention.
 pub fn load_options_graph() -> LoadOptions {
+    LoadOptions::default()
+}
+
+/// Load options when full markdown bodies must be retained in memory.
+pub fn load_options_with_bodies() -> LoadOptions {
     LoadOptions {
-        include_body: false,
+        include_body: true,
         respect_gitignore: true,
     }
 }

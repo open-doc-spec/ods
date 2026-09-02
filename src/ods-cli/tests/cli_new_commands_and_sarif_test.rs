@@ -60,7 +60,7 @@ fn test_cli_schema_command() {
     assert!(out.status.success());
     assert!(schema_file.exists());
     let content = fs::read_to_string(&schema_file).unwrap();
-    assert!(content.contains("Open Document Spec (ODS) Frontmatter Schema"));
+    assert!(content.contains("Open Document Spec (ODS) 2.0 Frontmatter Schema"));
 }
 
 #[test]

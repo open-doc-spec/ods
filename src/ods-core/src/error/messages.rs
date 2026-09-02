@@ -441,8 +441,56 @@ pub fn lint_invalid_share(share: &str) -> String {
     format!("invalid share value: {share} (allowed: public|org|private)")
 }
 
-pub fn lint_title_discouraged() -> String {
-    "frontmatter `title:` is discouraged for ODS docs — use the first `# H1` as the document title (value is preserved)".into()
+pub fn lint_ods_wrapper_rejected() -> String {
+    "TITLE-000: `ods:` wrapper is removed in ODS 2.0 — use flat top-level keys; run: ods fmt --migrate".into()
+}
+
+pub fn lint_legacy_key_rejected(key: &str) -> String {
+    format!("legacy key `{key}` is removed in ODS 2.0 — run: ods doctor")
+}
+
+pub fn lint_title_h1_mismatch(title: &str, h1: &str) -> String {
+    format!("TITLE-001: frontmatter title/name `{title}` does not match H1 `{h1}`")
+}
+
+pub fn lint_title_missing_h1() -> String {
+    "TITLE-002: frontmatter title/name present but document has no `# H1` heading".into()
+}
+
+pub fn lint_missing_load_path(path: impl Display) -> String {
+    format!("ASSET-004: load path does not exist: {path}")
+}
+
+pub fn lint_ontology_key_on_20(key: &str) -> String {
+    format!("`{key}` requires spec >= 2.1 (or @ods/pack-pareto-ontology)")
+}
+
+pub fn lint_unknown_related_predicate(predicate: &str) -> String {
+    format!("ENUM-006: unknown related predicate `{predicate}`")
+}
+
+pub fn lint_entity_not_found(entity: &str) -> String {
+    format!("ENT-001: entity `{entity}` has no definition document")
+}
+
+pub fn lint_duplicate_entity(entity: &str) -> String {
+    format!("ENT-002: duplicate entity name `{entity}`")
+}
+
+pub fn lint_resource_path_and_url(resource: impl Display) -> String {
+    format!("ASSET-005: resource entry must declare exactly one of `path` or `url`: {resource}")
+}
+
+pub fn lint_workspace_only_key(key: &str) -> String {
+    format!("`{key}` is a workspace key (ods.toml), not document frontmatter — move it to ods.toml")
+}
+
+pub fn lint_ontology_schema_missing(path: impl Display) -> String {
+    format!("ONT-001: schema path does not exist: {path}")
+}
+
+pub fn lint_code_object_form_rejected() -> String {
+    "CODE-002: code entries must be plain string paths in ODS 2.0".into()
 }
 
 pub fn lint_dangling_reference(reference: &str) -> String {
@@ -1030,9 +1078,8 @@ mod tests {
         let strings = [
             lint_invalid_status("nope", None),
             lint_invalid_status("drft", Some("draft")),
-            lint_invalid_share("public"),
-            lint_title_discouraged(),
-            lint_dangling_reference("x"),
+            lint_title_h1_mismatch("A", "B"),
+            lint_title_missing_h1(),
             lint_dangling_context_reference("y"),
             lint_depends_cycle("a -> b -> a"),
             lint_duplicate_document_id("id"),

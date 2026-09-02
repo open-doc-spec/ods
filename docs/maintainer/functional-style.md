@@ -16,7 +16,7 @@ Prefer **data + free functions** over OOP service objects.
 ## Scale (10K)
 
 - Parallel parse via `rayon` (`ODS_JOBS` to cap threads, legacy fallback `ODC_JOBS`).
-- Graph ops use `load_options_graph()` (`include_body: false`; **`index.md` bodies still kept**).
+- Graph ops use `load_options_graph()` (`include_body: false`; streaming parse keeps frontmatter + `##`/`###` lines only).
 - Watch holds one `Workspace` and applies dirty paths — no double full reload per tick.
 - No disk DB/cache required for ≤~10K.
 

@@ -58,7 +58,8 @@ fn parse_resources(
             let item_trimmed = item.trim();
             if item_trimmed.contains(':') {
                 let mut path = None;
-                parse_resource_kv(item_trimmed, &mut path)?;
+                let mut url = None;
+                parse_resource_kv(item_trimmed, &mut path, &mut url)?;
                 index += 1;
                 while let Some(inner) = lines.get(index) {
                     if inner.trim().is_empty() {
@@ -68,18 +69,29 @@ fn parse_resources(
                     if indent(inner) < min_indent + 2 {
                         break;
                     }
-                    parse_resource_kv(inner.trim(), &mut path)?;
+                    parse_resource_kv(inner.trim(), &mut path, &mut url)?;
                     index += 1;
                 }
 
-                if let Some(path) = path {
-                    resources.push(ResourceRef { path });
+                // A mapping with neither `path` nor `url` is retained as an empty entry
+                // so ASSET-005 can report it rather than silently dropping the item.
+                if path.is_some() || url.is_some() {
+                    resources.push(ResourceRef {
+                        path: path.unwrap_or_default(),
+                        url,
+                    });
+                } else {
+                    resources.push(ResourceRef {
+                        path: PathBuf::new(),
+                        url: None,
+                    });
                 }
                 continue;
             }
 
             resources.push(ResourceRef {
                 path: PathBuf::from(unquote(item_trimmed)),
+                url: None,
             });
             index += 1;
         } else {
@@ -94,9 +106,15 @@ fn parse_code_refs(
     lines: &[&str],
     start: usize,
     min_indent: usize,
-) -> Result<(Vec<CodeRef>, usize), String> {
+) -> Result<(Vec<CodeRef>, usize, bool), String> {
     let mut index = start;
     let mut code_refs = Vec::new();
+    let mut object_form = false;
+
+    // Inline list: code: [a.rs, b.rs]
+    if let Some(raw_line) = lines.get(start.saturating_sub(1)) {
+        let _ = raw_line;
+    }
 
     while let Some(raw_line) = lines.get(index) {
         if raw_line.trim().is_empty() {
@@ -113,11 +131,25 @@ fn parse_code_refs(
             break;
         };
 
+        let item = item.trim();
+        // ODS 2.0: plain string path
+        if !item.contains(':') || item.starts_with("http:") || item.starts_with("https:") {
+            let path = PathBuf::from(unquote(item).replace('\\', "/"));
+            code_refs.push(CodeRef {
+                path,
+                symbol: None,
+                role: CodeRole::Implementation,
+            });
+            index += 1;
+            continue;
+        }
+
+        object_form = true;
         let mut path = None;
         let mut symbol = None;
         let mut role = None;
 
-        parse_code_kv(item.trim(), &mut path, &mut symbol, &mut role)?;
+        parse_code_kv(item, &mut path, &mut symbol, &mut role)?;
         index += 1;
 
         while let Some(inner) = lines.get(index) {
@@ -137,14 +169,16 @@ fn parse_code_refs(
         let Some(path) = path else {
             return Err("code entry missing path".to_string());
         };
-        let Some(role) = role else {
-            return Err("code entry missing role".to_string());
-        };
+        let role = role.unwrap_or(CodeRole::Implementation);
 
-        code_refs.push(CodeRef { path, symbol, role });
+        code_refs.push(CodeRef {
+            path,
+            symbol,
+            role,
+        });
     }
 
-    Ok((code_refs, index))
+    Ok((code_refs, index, object_form))
 }
 
 pub(super) fn parse_context(
@@ -231,7 +265,7 @@ mod test_helpers {
             "    role: implementation",
             "    symbol: main",
         ];
-        let (code, _idx) = parse_code_refs(&code_lines, 0, 2).unwrap();
+        let (code, _idx, _) = parse_code_refs(&code_lines, 0, 2).unwrap();
         assert_eq!(code.len(), 1);
         assert_eq!(code[0].path, PathBuf::from("src/main.rs"));
 

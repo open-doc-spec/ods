@@ -18,7 +18,11 @@ pub(super) fn lint_references(
 ) -> Vec<Diagnostic> {
     let mut diagnostics = Vec::new();
 
-    for reference in frontmatter.depends.iter().chain(frontmatter.related.iter()) {
+    for reference in frontmatter
+        .depends
+        .iter()
+        .chain(frontmatter.related_targets().iter())
+    {
         if crate::refs::document_ref_to_id(workspace, document, reference).is_none()
             && !ids.contains_key(reference)
         {
@@ -40,6 +44,8 @@ pub(super) fn lint_references(
             });
         }
     }
+
+    // Top-level `load` existence is ASSET-004, emitted once from `spec20_rules`.
 
     if let Some(context) = &frontmatter.context {
         for load in &context.load {
